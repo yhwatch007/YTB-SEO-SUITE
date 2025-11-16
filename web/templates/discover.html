@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load formatting %}
+
+{% block title %}Discover{% endblock %}
+
+{% block content %}
+<style>
+  .pagebar{ background:var(--panel); border-radius:14px; padding:14px 18px; display:flex; align-items:center; gap:10px; }
+  .pagebar .title{ font-weight:800; font-size:1.1rem; }
+  .filter-simple, .filter-advanced{ background:var(--panel); border-radius:14px; padding:12px; }
+  .form-control, .form-select{ background:var(--muted); border:none; color:var(--text); }
+  .form-control:focus, .form-select:focus{ box-shadow:0 0 0 .2rem rgba(255,122,0,.25); }
+  .btn-accent{ background:var(--accent); border-color:var(--accent); color:#111; font-weight:700; }
+  .btn-accent:hover{ filter:brightness(1.05); }
+  .card-video{ background:var(--panel); border:none; border-radius:18px; overflow:hidden; }
+  .thumb{ border-radius:12px; width:100%; height:auto; }
+  .title-orange{ color:var(--accent); font-weight:900; }
+  .descbox{
+    background:var(--muted);
+    color:var(--sub);
+    border-radius:12px;
+    padding:10px 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 140px;     /* limit height */
+    overflow-y: auto;      /* scroll inside box */
+  }
+  .stat-chip{ background:var(--muted); border-radius:999px; padding:6px 10px; color:var(--sub); display:inline-flex; gap:8px; align-items:center; }
+  .stat-chip i{ color:var(--accent); }
+  .sidebar{ background:var(--panel); border-radius:18px; padding:16px; position:sticky; top:12px; }
+  .underline-red{ border-bottom:2px solid #ff4d4f; padding-bottom:2px; display:inline-block; }
+  a, a:hover{ color:var(--accent); text-decoration:none; }
+  .form-label{ color:var(--sub); }
+</style>
+
+<!-- top title bar -->
+<div class="pagebar mb-3">
+  <i class="bi bi-graph-up-arrow fs-5" style="color:var(--accent)"></i>
+  <div class="title">Discover videos and stats</div>
+</div>
+
+<!-- SIMPLE BAR (keyword + number + Go) -->
+<form method="get" action="{% url 'discover' %}" class="filter-simple mb-2">
+  <div class="row g-2 align-items-end">
+    <div class="col-lg-7">
+      <label class="form-label">Type a keyword</label>
+      <input name="q" class="form-control" placeholder="Write any keywords" value="{{ q|default:'' }}" required>
+    </div>
+    <div class="col-lg-3">
+      <label class="form-label">No. of videos to fetch</label>
+      <select name="n" class="form-select">
+        {% for k in n_options %}
+          <option value="{{k}}" {% if n == k %}selected{% endif %}>{{k}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-lg-2 d-grid">
+      <button class="btn btn-accent">Go</button>
+    </div>
+  </div>
+
+  <!-- Advanced toggle -->
+  <div class="mt-2 d-flex justify-content-end">
+    <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+      Advanced filters
+    </button>
+  </div>
+
+  <!-- ADVANCED (collapsible) -->
+  <div id="advancedFilters" class="collapse mt-3 filter-advanced">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Sort</label>
+        <select name="sort" class="form-select">
+          {% for value,label in sort_options %}
+            <option value="{{ value }}" {% if sort == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Filter text</label>
+        <input name="filter" class="form-control" placeholder="Filter title/description..." value="{{ text_filter }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Min length (min)</label>
+        <input name="min_len_min" type="number" min="0" class="form-control" value="{{ min_len_min }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Max length (min)</label>
+        <input name="max_len_min" type="number" min="0" class="form-control" value="{{ max_len_min }}">
+      </div>
+      <div class="col-md-1 d-grid">
+        <button class="btn btn-accent">Apply</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- results -->
+  <div class="col-lg-8">
+    {% if results %}
+      {% for v in results %}
+      <div class="card card-video mb-3 p-3">
+        <div class="row g-3">
+          <div class="col-sm-4 col-md-3">
+            <a href="{{ v.url }}" target="_blank" rel="noreferrer">
+              <img src="{{ v.thumb }}" class="thumb" alt="">
+            </a>
+          </div>
+          <div class="col-sm-8 col-md-9">
+            <a href="{{ v.url }}" target="_blank" rel="noreferrer" class="title-orange">{{ v.title }}</a>
+            <!-- DESCRIPTION in scrollable box -->
+            <div class="descbox mt-2">{{ v.description|default:"" }}</div>
+            <div class="mt-3 d-flex flex-wrap gap-2">
+              <span class="stat-chip"><i class="bi bi-hand-thumbs-up-fill"></i> {{ v.likes|shortnum }}</span>
+              <span class="stat-chip"><i class="bi bi-eye-fill"></i> {{ v.views|shortnum }}</span>
+              <span class="stat-chip"><i class="bi bi-chat-dots-fill"></i> {{ v.comments|shortnum }}</span>
+              <span class="stat-chip">
+                <i class="bi bi-slash-square"></i>
+                Ratio: {% if v.ratio %}{{ v.ratio|floatformat:3 }}{% else %}—{% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% elif q %}
+      <div class="alert alert-warning">No videos matched your filters.</div>
+    {% endif %}
+  </div>
+
+  <!-- sidebar -->
+  <div class="col-lg-4">
+    <div class="sidebar">
+      <h5 class="mb-2"><i class="bi bi-hash"></i> {{ q|default:"(no keyword)" }}</h5>
+      <div class="mt-3">
+        <div class="fw-bold mb-2">Average Statistics</div>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="stat-chip"><i class="bi bi-hand-thumbs-up-fill"></i> {{ avg.likes|default_if_none:""|shortnum }}</span>
+          <span class="stat-chip"><i class="bi bi-eye-fill"></i> {{ avg.views|default_if_none:""|shortnum }}</span>
+          <span class="stat-chip"><i class="bi bi-chat-dots-fill"></i> {{ avg.comments|default_if_none:""|shortnum }}</span>
+          <span class="stat-chip">
+            <i class="bi bi-slash-square"></i>
+            {% if avg.ratio %}{{ avg.ratio|floatformat:3 }}{% else %}—{% endif %}
+          </span>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="fw-bold mb-1">Audience Sentiment</div>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size:1.4rem">{{ sentiment.emoji }}</span>
+          <span class="text-secondary">{{ sentiment.text }}</span>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="fw-bold mb-1">Ranking Difficulty</div>
+        <div class="text-secondary">
+          <div class="underline-red">#1st Ranking Difficulty - {{ difficulty.top1 }}</div><br>
+          <div class="underline-red mt-1">#5th Ranking Difficulty - {{ difficulty.top5 }}</div>
+        </div>
+      </div>
+
+      <!-- AI Insight card (uses ai_insight from view, if you kept that) -->
+      {% if ai_insight %}
+      <div class="mt-4">
+        <div class="fw-bold mb-1">AI Insight (Gemini)</div>
+        <div class="descbox" style="font-size:.85rem;">
+          {{ ai_insight|safe }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<style>
+  .hero {
+    position: relative;
+    background: linear-gradient(135deg, rgba(39,43,51,1) 0%, rgba(10,14,25,1) 40%, rgba(39,43,51,1) 100%);
+    border-radius: 18px;
+    padding: 24px 20px;
+    overflow: hidden;
+  }
+  body.theme-light .hero {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f9fafb 40%, #e0f2fe 100%);
+  }
+  .hero-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+  }
+  .hero-sub {
+    color: var(--sub);
+    max-width: 520px;
+  }
+  .chip {
+    background: var(--muted);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    color: var(--sub);
+  }
+  .tool-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 16px 14px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .tool-desc {
+    font-size: 0.85rem;
+    color: var(--sub);
+    margin-bottom: 8px;
+  }
+  .btn-soft {
+    background: var(--muted);
+    border: none;
+    color: var(--sub);
+    font-size: 0.85rem;
+  }
+  .btn-soft:hover{
+    filter: brightness(1.05);
+  }
+
+  /* floating light blobs in hero */
+  .hero-orb {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,122,0,0.9), transparent 60%);
+    opacity: 0.35;
+    filter: blur(4px);
+    animation: float 16s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  .hero-orb.orb-2 {
+    width: 260px;
+    height: 260px;
+    right: -80px;
+    top: -40px;
+    background: radial-gradient(circle at 20% 30%, rgba(56,189,248,0.9), transparent 60%);
+    animation-duration: 22s;
+  }
+  .hero-orb.orb-3 {
+    width: 220px;
+    height: 220px;
+    left: -60px;
+    bottom: -40px;
+    background: radial-gradient(circle at 40% 40%, rgba(126,34,206,0.9), transparent 60%);
+    animation-duration: 18s;
+  }
+
+  @keyframes float {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(20px,-10px,0) scale(1.05); }
+    100% { transform: translate3d(-10px,15px,0) scale(1.02); }
+  }
+</style>
+
+<div class="hero mb-4">
+  <!-- animated blobs -->
+  <div class="hero-orb"></div>
+  <div class="hero-orb orb-2"></div>
+  <div class="hero-orb orb-3"></div>
+
+  <div class="position-relative">
+    <div class="d-flex justify-content-between flex-wrap gap-3 align-items-start">
+      <div>
+        <div class="chip mb-2 d-inline-flex align-items-center gap-2">
+          <i class="bi bi-lightning-charge-fill" style="color:var(--accent);"></i>
+          YouTube SEO Suite
+        </div>
+        <div class="hero-title mb-2">
+          Plan, analyze &amp; generate your YouTube strategy with AI.
+        </div>
+        <p class="hero-sub mb-0">
+          Use <b>Discover</b> to find opportunities, <b>Optimize</b> to score and improve videos,
+          and the <b>AI tools</b> to generate metadata, tags &amp; hashtags in seconds.
+        </p>
+      </div>
+      <div class="d-flex flex-column gap-2 align-items-end">
+        <span class="chip"><i class="bi bi-gear-fill"></i> Django + YouTube API</span>
+        <span class="chip"><i class="bi bi-robot"></i> Powered by Gemini AI</span>
+        <span class="chip"><i class="bi bi-rocket-takeoff-fill"></i> Focused on rankable topics</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="tool-card">
+      <div>
+        <div class="tool-title"><i class="bi bi-graph-up-arrow me-1"></i> Discover</div>
+        <div class="tool-desc">
+          Analyze YouTube search results, see views/engagement and get AI insight on how competitive a keyword is.
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="chip">Keyword research</span>
+        <a href="{% url 'discover' %}" class="btn btn-soft btn-sm">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="tool-card">
+      <div>
+        <div class="tool-title"><i class="bi bi-magic me-1"></i> Optimize</div>
+        <div class="tool-desc">
+          Score your video’s title, description &amp; tags, see missing entities and combine rule-based + AI suggestions.
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="chip">SEO + AI rewrite</span>
+        <a href="{% url 'optimize' %}" class="btn btn-soft btn-sm">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="tool-card">
+      <div>
+        <div class="tool-title"><i class="bi bi-robot me-1"></i> AI Generator</div>
+        <div class="tool-desc">
+          From a simple topic, generate ready-to-use titles, descriptions, tags &amp; hashtags with Gemini.
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="chip">Full metadata pack</span>
+        <a href="{% url 'ai_generator' %}" class="btn btn-soft btn-sm">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="tool-card">
+      <div>
+        <div class="tool-title"><i class="bi bi-tags me-1"></i> Tag Finder</div>
+        <div class="tool-desc">
+          Give a topic and let the AI brainstorm 20–25 specific, SEO-friendly tags for your video.
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="chip">Long-tail discovery</span>
+        <a href="{% url 'tag_finder' %}" class="btn btn-soft btn-sm">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="tool-card">
+      <div>
+        <div class="tool-title"><i class="bi bi-hash me-1"></i> Hashtag Finder</div>
+        <div class="tool-desc">
+          Quickly generate a clean set of short, brand-safe hashtags to boost discoverability.
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="chip">Description helper</span>
+        <a href="{% url 'hashtag_finder' %}" class="btn btn-soft btn-sm">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="tool-card">
+      <div>
+        <div class="tool-title"><i class="bi bi-collection-play me-1"></i> Library</div>
+        <div class="tool-desc">
+          View and reuse saved optimizations for future uploads or split-tests.
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="chip">Your saved work</span>
+        <a href="{% url 'library' %}" class="btn btn-soft btn-sm">Open →</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

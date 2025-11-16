@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% load formatting %}
+{% block title %}Optimize Video{% endblock %}
+{% block content %}
+
+<style>
+  :root { --bg:#1f2227; --panel:#272b33; --muted:#313642; --accent:#ff7a00; --text:#fff; --sub:#cfd3da; }
+  body{ background:var(--bg)!important; color:var(--text)!important; }
+  .panel{ background:var(--panel); border-radius:16px; padding:16px; }
+  .form-control, .form-check-input{ background:var(--muted); border:none; color:var(--text); }
+  .form-control:focus{ box-shadow:0 0 0 .2rem rgba(255,122,0,.25); }
+  .btn-accent{ background:var(--accent); border-color:var(--accent); color:#111; font-weight:700; }
+  .btn-accent:hover{ filter:brightness(1.05); }
+  .badge-soft{ background:var(--muted); color:var(--sub); border-radius:999px; padding:6px 10px; font-size: .8rem; }
+  .score-bubble{ background:var(--muted); border-radius:14px; padding:10px 14px; display:inline-block; font-weight:800; }
+  .fix-item{ background:var(--muted); border-radius:12px; padding:8px 10px; }
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+  /* pillar bars */
+  .pillar-row{ margin-bottom:.45rem; }
+  .pillar-top{ display:flex; justify-content:space-between; align-items:center; font-size:.82rem; color:var(--sub); }
+  .pillar-name{ font-weight:600; }
+  .pillar-value{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; }
+  .pillar-bar-outer{
+    background:var(--muted);
+    border-radius:999px;
+    height:8px;
+    overflow:hidden;
+    margin-top:4px;
+  }
+  .pillar-bar-inner{
+    height:100%;
+    border-radius:999px;
+    width:0%;
+    transition:width .4s ease-out;
+  }
+  .bar-good{ background:linear-gradient(90deg,#22c55e,#a3e635); }
+  .bar-medium{ background:linear-gradient(90deg,#eab308,#f97316); }
+  .bar-low{ background:linear-gradient(90deg,#f97316,#ef4444); }
+
+  .pillars-grid{
+    display:flex;
+    flex-direction:column;
+    gap:.2rem;
+  }
+
+  .ai-badge{
+    background:rgba(99,102,241,0.12);
+    color:#a5b4fc;
+    border-radius:999px;
+    padding:4px 9px;
+    font-size:.75rem;
+  }
+</style>
+
+<h2 class="mb-3">Optimize Video</h2>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="panel">
+      <form id="optimizeForm" method="get" action="{% url 'optimize' %}">
+        <div class="mb-3">
+          <label class="form-label">Main Keyword</label>
+          <input name="keyword" class="form-control" value="{{ keyword|default:'' }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Title <small class="text-secondary">(0/100)</small></label>
+          <input name="title" maxlength="100" class="form-control" value="{{ title|default:'' }}">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description <small class="text-secondary">(0/5000)</small></label>
+          <textarea name="description" maxlength="5000" rows="6" class="form-control">{{ description|default:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Tags (comma separated) <small class="text-secondary">(0/500)</small></label>
+          <input name="tags" maxlength="500" class="form-control" value="{{ tags|default:'' }}">
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="has_custom_thumbnail" {% if has_custom_thumbnail %}checked{% endif %}>
+          <label class="form-check-label">Video has a custom thumbnail</label>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="in_playlists" {% if in_playlists %}checked{% endif %}>
+          <label class="form-check-label">Video will be in 1 or more playlists</label>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-accent" name="action" value="analyze">Analyze It!</button>
+          <button class="btn btn-secondary" name="action" value="save" disabled>Save It! (use button below)</button>
+        </div>
+      </form>
+    </div>
+
+    {% if error %}
+      <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+
+    {% if analysis %}
+      <div class="panel mt-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <div class="text-secondary">Ranking Potential</div>
+            <div class="score-bubble fs-4">{{ analysis.score }}/100</div>
+          </div>
+          <div>
+            <span class="badge-soft">Title len: {{ analysis.title_len }}</span>
+            <span class="badge-soft">Desc len: {{ analysis.desc_len }}</span>
+            <span class="badge-soft">Tags: {{ analysis.tags_count }}</span>
+            <span class="badge-soft">SERP sample: {{ analysis.serp_count }}</span>
+          </div>
+          {% if analysis.meta_score %}
+          <div>
+            <div class="text-secondary">Metadata Score</div>
+            <div class="score-bubble fs-5">{{ analysis.meta_score }}/100</div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if analysis.pillars %}
+          <hr>
+          <h6 class="mb-2">Pillar Breakdown</h6>
+          <div class="pillars-grid">
+            {% for name, info in analysis.pillars.items %}
+              <div class="pillar-row">
+                <div class="pillar-top">
+                  <span class="pillar-name">{{ name }}</span>
+                  <span class="pillar-value">{{ info.score }}/{{ info.max }}</span>
+                </div>
+                <div class="pillar-bar-outer">
+                  {% if info.pct >= 70 %}
+                    {% with bar_class="bar-good" %}
+                      <div class="pillar-bar-inner {{ bar_class }}" style="width: {{ info.pct }}%;"></div>
+                    {% endwith %}
+                  {% elif info.pct >= 40 %}
+                    {% with bar_class="bar-medium" %}
+                      <div class="pillar-bar-inner {{ bar_class }}" style="width: {{ info.pct }}%;"></div>
+                    {% endwith %}
+                  {% else %}
+                    {% with bar_class="bar-low" %}
+                      <div class="pillar-bar-inner {{ bar_class }}" style="width: {{ info.pct }}%;"></div>
+                    {% endwith %}
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <hr>
+
+        <h6 class="mb-2">Top Entities to Cover</h6>
+        {% if analysis.entities %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for e in analysis.entities %}
+              <span class="badge-soft">{{ e }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-secondary">No entities extracted.</div>
+        {% endif %}
+
+        {% if analysis.meta_breakdown %}
+          <hr>
+          <h6 class="mb-2">Metadata Breakdown</h6>
+          <ul class="mb-0">
+            {% for k,v in analysis.meta_breakdown.items %}
+              <li>{{ k }}: <b>{{ v }}</b></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        {% if analysis.checks %}
+          <hr>
+          <h6 class="mb-2">Checklist</h6>
+          <ul class="mb-0">
+            <li>Custom thumbnail: {% if analysis.checks.custom_thumbnail %}✅{% else %}❌{% endif %}</li>
+            <li>In playlists: {% if analysis.checks.in_playlists %}✅{% else %}❌{% endif %}</li>
+          </ul>
+        {% endif %}
+
+        {% if analysis.fixes %}
+          <hr>
+          <h6 class="mb-2">Top Fixes</h6>
+          <div class="d-flex flex-column gap-2">
+            {% for f in analysis.fixes %}
+              <div class="fix-item">• {{ f }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if analysis.suggested_titles or analysis.suggested_description or analysis.suggested_tags %}
+          <hr>
+          <h6 class="mb-2">Suggested Metadata (rule-based)</h6>
+
+          {% if analysis.suggested_titles %}
+            <div class="mb-2">
+              <div class="text-secondary mb-1">Titles</div>
+              <ul class="mb-0">
+                {% for t in analysis.suggested_titles %}
+                  <li class="mono d-flex justify-content-between align-items-center gap-2">
+                    <span>{{ t }}</span>
+                    <button type="button"
+                            class="btn btn-sm btn-accent"
+                            onclick="useSuggestion('{{ t|escapejs }}', null, null)">
+                      Use
+                    </button>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          {% if analysis.suggested_description %}
+            <div class="mb-2">
+              <div class="text-secondary mb-1">Description</div>
+              <div class="d-flex gap-2">
+                <div class="mono flex-grow-1">{{ analysis.suggested_description }}</div>
+                <button type="button"
+                        class="btn btn-sm btn-accent"
+                        onclick="useSuggestion(null, '{{ analysis.suggested_description|escapejs }}', null)">
+                  Use
+                </button>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if analysis.suggested_tags %}
+            {% with analysis.suggested_tags|join:", " as sug_tags_string %}
+            <div class="mb-2">
+              <div class="text-secondary mb-1">Tags</div>
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <div class="d-flex flex-wrap gap-2">
+                  {% for t in analysis.suggested_tags %}
+                    <span class="badge-soft">{{ t }}</span>
+                  {% endfor %}
+                </div>
+                <button type="button"
+                        class="btn btn-sm btn-accent"
+                        onclick="useSuggestion(null, null, '{{ sug_tags_string|escapejs }}')">
+                  Use all
+                </button>
+              </div>
+            </div>
+            {% endwith %}
+          {% endif %}
+
+          {% if analysis.suggested_hashtags %}
+            <div class="mb-2">
+              <div class="text-secondary mb-1">Hashtags</div>
+              <div class="d-flex flex-wrap gap-2">
+                {% for h in analysis.suggested_hashtags %}
+                  <span class="badge-soft">{{ h }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% if analysis.ai_metadata or analysis.ai_metadata_raw %}
+          <hr>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h6 class="mb-0">AI-Powered Suggestions</h6>
+            <span class="ai-badge"><i class="bi bi-robot"></i> Gemini</span>
+          </div>
+
+          {% if analysis.ai_metadata %}
+            {% with ai=analysis.ai_metadata %}
+              {% if ai.titles %}
+                <div class="mb-2">
+                  <div class="text-secondary mb-1">AI Titles</div>
+                  <ul class="mb-0">
+                    {% for t in ai.titles %}
+                      <li class="mono d-flex justify-content-between align-items-center gap-2">
+                        <span>{{ t }}</span>
+                        <button type="button"
+                                class="btn btn-sm btn-accent"
+                                onclick="useSuggestion('{{ t|escapejs }}', null, null)">
+                          Use
+                        </button>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+
+              {% if ai.description %}
+                <div class="mb-2">
+                  <div class="text-secondary mb-1">AI Description</div>
+                  <div class="d-flex gap-2">
+                    <div class="mono flex-grow-1">{{ ai.description }}</div>
+                    <button type="button"
+                            class="btn btn-sm btn-accent"
+                            onclick="useSuggestion(null, '{{ ai.description|escapejs }}', null)">
+                      Use
+                    </button>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if ai.tags %}
+                {% with ai.tags|join:", " as ai_tags_string %}
+                <div class="mb-2">
+                  <div class="text-secondary mb-1">AI Tags</div>
+                  <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="d-flex flex-wrap gap-2">
+                      {% for t in ai.tags %}
+                        <span class="badge-soft">{{ t }}</span>
+                      {% endfor %}
+                    </div>
+                    <button type="button"
+                            class="btn btn-sm btn-accent"
+                            onclick="useSuggestion(null, null, '{{ ai_tags_string|escapejs }}')">
+                      Use all
+                    </button>
+                  </div>
+                </div>
+                {% endwith %}
+              {% endif %}
+
+              {% if ai.hashtags %}
+                <div class="mb-2">
+                  <div class="text-secondary mb-1">AI Hashtags</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for h in ai.hashtags %}
+                      <span class="badge-soft">{{ h }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            <div class="mono small">{{ analysis.ai_metadata_raw }}</div>
+          {% endif %}
+        {% endif %}
+
+        <!-- Save It! form (POST) -->
+        <hr>
+        <form method="post" action="{% url 'optimize' %}">
+          {% csrf_token %}
+          <!-- Hidden fields to save what the user entered + analysis score/entities -->
+          <input type="hidden" name="keyword" value="{{ keyword }}">
+          <input type="hidden" name="title" value="{{ title }}">
+          <input type="hidden" name="description" value="{{ description }}">
+          <input type="hidden" name="tags" value="{{ tags }}">
+
+          <input type="hidden" name="has_custom_thumbnail" value="{% if analysis.checks.custom_thumbnail %}on{% endif %}">
+          <input type="hidden" name="in_playlists" value="{% if analysis.checks.in_playlists %}on{% endif %}">
+
+          <input type="hidden" name="score" value="{{ analysis.score }}">
+          <input type="hidden" name="entities" value="{{ analysis.entities|join:',' }}">
+
+          <button class="btn btn-accent">Save It!</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="panel">
+      <h6 class="mb-2">Tips</h6>
+      <ul class="mb-0 text-secondary">
+        <li>Keep titles ≤ 70 chars and include the main keyword.</li>
+        <li>Use the first lines of the description to promise value.</li>
+        <li>Add chapters (timestamps) for better retention.</li>
+        <li>Use 10–20 specific tags (no spam).</li>
+        <li>Custom thumbnail & playlists help CTR and session time.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+function useSuggestion(title, description, tags) {
+  var form = document.getElementById('optimizeForm');
+  if (!form) return;
+
+  if (title !== null && title !== undefined) {
+    form.elements['title'].value = title;
+  }
+  if (description !== null && description !== undefined) {
+    form.elements['description'].value = description;
+  }
+  if (tags !== null && tags !== undefined) {
+    form.elements['tags'].value = tags;
+  }
+
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-3">AI Tag Finder</h1>
+<p class="text-muted mb-3">
+  Enter your topic, and the AI will generate a list of SEO-friendly YouTube tags.
+</p>
+
+<form method="post" class="card p-3 mb-4">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Video topic / keyword</label>
+    <textarea name="topic" rows="2" class="form-control"
+              placeholder="Example: how to edit videos on CapCut">{{ topic }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Generate tags</button>
+</form>
+
+{% if tags_text %}
+  <div class="card p-3">
+    <h5 class="mb-2">Suggested tags</h5>
+    <p class="small text-muted mb-2">Copy this comma-separated list into YouTube Studio:</p>
+    <pre class="small bg-dark text-light p-2 rounded" style="white-space: pre-wrap;">{{ tags_text }}</pre>
+  </div>
+{% endif %}
+{% endblock %}

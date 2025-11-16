@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Library{% endblock %}
+{% block content %}
+<style>
+  :root { --bg:#1f2227; --panel:#272b33; --muted:#313642; --accent:#ff7a00; --text:#fff; --sub:#cfd3da; }
+  body{ background:var(--bg)!important; color:var(--text)!important; }
+  .panel{ background:var(--panel); border-radius:16px; padding:16px; }
+  .badge-soft{ background:var(--muted); color:var(--sub); border-radius:999px; padding:6px 10px; }
+</style>
+
+<h2 class="mb-3">Library</h2>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="alert alert-success">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if page.object_list %}
+  <div class="row g-3">
+    {% for item in page.object_list %}
+    <div class="col-lg-6">
+      <div class="panel h-100">
+        <div class="d-flex justify-content-between">
+          <div class="fw-bold">{{ item.keyword }}</div>
+          <div class="badge-soft">Score: {{ item.score }}</div>
+        </div>
+        <div class="mt-2 text-secondary" style="font-size:.9rem;">
+          <div><b>Title:</b> {{ item.title|default:"—" }}</div>
+          <div><b>Tags:</b> {{ item.tags_text|default:"—" }}</div>
+          <div><b>Entities:</b> {{ item.entities|default:"—" }}</div>
+        </div>
+        <div class="mt-2 d-flex gap-2">
+          <span class="badge-soft">Thumbnail: {% if item.has_custom_thumbnail %}✅{% else %}❌{% endif %}</span>
+          <span class="badge-soft">Playlists: {% if item.in_playlists %}✅{% else %}❌{% endif %}</span>
+        </div>
+        <div class="mt-2 text-secondary" style="font-size:.85rem;">
+          Saved: {{ item.created_at|date:"Y-m-d H:i" }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- pagination -->
+  <nav class="mt-3">
+    <ul class="pagination">
+      {% if page.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}">Previous</a></li>
+      {% endif %}
+      <li class="page-item active"><span class="page-link">{{ page.number }}</span></li>
+      {% if page.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+{% else %}
+  <div class="panel">No saved optimizations yet.</div>
+{% endif %}
+{% endblock %}
