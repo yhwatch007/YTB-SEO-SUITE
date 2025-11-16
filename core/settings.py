@@ -30,7 +30,32 @@ SECRET_KEY = 'django-insecure-%d=#izd#+tse^c^rl1vds=_vfc#y!60lkexd#o(jeuyrjk1f$=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["*"]
+import os
+
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+
+# Allow both local and production hosts
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "iot.yahyz.news",
+    "www.iot.yahyz.news",
+      
+]
+
+# CSRF trusted origins must include scheme (http/https)
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1",
+    "http://localhost",
+    "https://iot.yahyz.news",
+    "https://www.iot.yahyz.news",
+]
+
+# Behind Railway's proxy, tell Django to trust X-Forwarded headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
 
 ####
 # This is your existing, correct setup for django-environ
