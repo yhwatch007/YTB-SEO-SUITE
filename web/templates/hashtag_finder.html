@@ -1,26 +1,616 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-3">AI Hashtag Finder</h1>
-<p class="text-muted mb-3">
-  Enter your topic, and the AI will suggest short, safe YouTube hashtags.
-</p>
+<style>
+  .hashtag-finder-hero {
+    position: relative;
+    padding: 3rem 0 2rem;
+    overflow: hidden;
+  }
 
-<form method="post" class="card p-3 mb-4">
-  {% csrf_token %}
-  <div class="mb-3">
-    <label class="form-label">Video topic / keyword</label>
-    <textarea name="topic" rows="2" class="form-control"
-              placeholder="Example: productivity tips for students">{{ topic }}</textarea>
-  </div>
-  <button type="submit" class="btn btn-primary">Generate hashtags</button>
-</form>
+  .hashtag-finder-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: float 24s ease-in-out infinite;
+    pointer-events: none;
+  }
 
-{% if hashtags_text %}
-  <div class="card p-3">
-    <h5 class="mb-2">Suggested hashtags</h5>
-    <p class="small text-muted mb-2">Copy these into your description:</p>
-    <pre class="small bg-dark text-light p-2 rounded" style="white-space: pre-wrap;">{{ hashtags_text }}</pre>
+  .hashtag-finder-orb-1 {
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    top: -90px;
+    right: 12%;
+    animation-delay: 0s;
+  }
+
+  .hashtag-finder-orb-2 {
+    width: 260px;
+    height: 260px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    bottom: -70px;
+    left: 8%;
+    animation-delay: 10s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(25px, -25px) scale(1.05); }
+    66% { transform: translate(-30px, 30px) scale(0.95); }
+  }
+
+  .hashtag-finder-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    animation: fadeInUp 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+    border: none;
+  }
+
+  .hashtag-finder-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #06b6d4, #0891b2);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hashtag-finder-textarea {
+    background: var(--muted);
+    border: 2px solid transparent;
+    color: var(--text) !important;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    font-size: 15px;
+    resize: vertical;
+  }
+
+  .hashtag-finder-textarea:focus {
+    background: var(--panel);
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+    outline: none;
+    color: var(--text) !important;
+  }
+
+  .hashtag-finder-textarea::placeholder {
+    color: var(--sub);
+    opacity: 0.6;
+  }
+
+  .hashtag-finder-btn {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hashtag-finder-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .hashtag-finder-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+  }
+
+  .hashtag-finder-btn:hover::before {
+    left: 100%;
+  }
+
+  .hashtag-finder-btn:active {
+    transform: translateY(0);
+  }
+
+  .hashtag-finder-btn i {
+    transition: transform 0.3s ease;
+  }
+
+  .hashtag-finder-btn:hover i {
+    transform: rotate(-10deg) scale(1.1);
+  }
+
+  .results-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+    position: relative;
+    overflow: hidden;
+    border: none;
+  }
+
+  .results-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+  }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--muted);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .results-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .results-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .results-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .results-subtitle {
+    color: var(--sub);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .hashtag-count-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .hashtags-display {
+    background: var(--muted);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .hashtags-display::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .hashtags-display::-webkit-scrollbar-track {
+    background: var(--panel);
+    border-radius: 5px;
+  }
+
+  .hashtags-display::-webkit-scrollbar-thumb {
+    background: #06b6d4;
+    border-radius: 5px;
+  }
+
+  .hashtags-text {
+    color: var(--text) !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'Segoe UI Mono', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .copy-btn {
+    background: #06b6d4;
+    border: none;
+    color: white;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .copy-btn:hover {
+    background: #0891b2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  }
+
+  .copy-btn i {
+    font-size: 16px;
+  }
+
+  .hashtag-visual-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--muted);
+  }
+
+  .hashtag-chip {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(8, 145, 178, 0.15));
+    border: 2px solid rgba(6, 182, 212, 0.3);
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .hashtag-chip:hover {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(8, 145, 178, 0.25));
+    border-color: rgba(6, 182, 212, 0.6);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+  }
+
+  .hashtag-chip i {
+    font-size: 14px;
+    color: #06b6d4;
+  }
+
+  .hashtag-chip:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .info-panel {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(8, 145, 178, 0.1));
+    border-left: 4px solid #06b6d4;
+    border-radius: 12px;
+    padding: 1.5rem;
+    animation: fadeInUp 0.5s ease-out 0.2s both;
+  }
+
+  .info-panel h5 {
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-panel i {
+    color: #06b6d4;
+    font-size: 20px;
+  }
+
+  .info-panel ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .info-panel li {
+    color: var(--sub);
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .warning-box {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid #ef4444;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .warning-box i {
+    color: #ef4444;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .warning-box-content {
+    flex: 1;
+  }
+
+  .warning-box-content strong {
+    color: #ef4444;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .warning-box-content p {
+    color: var(--sub);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--muted), transparent);
+    margin: 3rem 0;
+    border: none;
+  }
+
+  @media (max-width: 768px) {
+    .hashtag-finder-hero {
+      padding: 2rem 0 1rem;
+    }
+
+    .hashtag-finder-card, .results-card {
+      padding: 1.5rem;
+    }
+
+    .results-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .results-title-section {
+      width: 100%;
+    }
+
+    .results-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    .results-title {
+      font-size: 1.25rem;
+    }
+
+    .action-buttons {
+      width: 100%;
+    }
+
+    .copy-btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .hashtag-chip {
+      font-size: 13px;
+      padding: 0.4rem 0.8rem;
+    }
+  }
+</style>
+
+<div class="hashtag-finder-hero">
+  <div class="hashtag-finder-orb hashtag-finder-orb-1"></div>
+  <div class="hashtag-finder-orb hashtag-finder-orb-2"></div>
+
+  <div class="container" style="position: relative; z-index: 1;">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="text-center mb-4">
+          <h1 class="mb-3" style="font-weight: 700; color: var(--text);">
+            <i class="bi bi-hash" style="color: #06b6d4;"></i>
+            AI Hashtag Finder
+          </h1>
+          <p class="text-muted" style="font-size: 16px;">
+            Generate safe, relevant YouTube hashtags to boost discoverability and reach.
+          </p>
+        </div>
+
+        <form method="post" class="hashtag-finder-card" id="hashtagFinderForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-pencil-square" style="color: #06b6d4;"></i>
+              Video Topic / Keyword
+            </label>
+            <textarea 
+              name="topic" 
+              rows="3" 
+              class="form-control hashtag-finder-textarea"
+              placeholder="Example: productivity tips for students studying online"
+              required
+            >{{ topic }}</textarea>
+            <div style="font-size: 13px; color: var(--sub); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-info-circle"></i>
+              <span>Be specific to get targeted, relevant hashtags</span>
+            </div>
+          </div>
+          
+          <button type="submit" class="hashtag-finder-btn">
+            <i class="bi bi-hash"></i>
+            Generate Hashtags
+          </button>
+        </form>
+
+        <div class="info-panel mt-4">
+          <h5>
+            <i class="bi bi-shield-check"></i>
+            Hashtag Guidelines
+          </h5>
+          <ul>
+            <li><strong>Use 3-5 hashtags maximum</strong> - More can look spammy</li>
+            <li><strong>Place in description</strong> - First 3 hashtags appear above title</li>
+            <li><strong>Mix popular & niche</strong> - Balance reach with targeting</li>
+            <li><strong>Avoid misleading tags</strong> - Only use relevant hashtags</li>
+            <li><strong>Check spelling</strong> - Typos won't help discoverability</li>
+          </ul>
+
+          <div class="warning-box">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div class="warning-box-content">
+              <strong>Warning</strong>
+              <p>Using irrelevant or excessive hashtags can hurt your video's performance. YouTube may reduce visibility for hashtag spam.</p>
+            </div>
+          </div>
+        </div>
+
+        {% if hashtags_text %}
+          <hr class="divider">
+
+          <div class="results-card">
+            <div class="results-header">
+              <div class="results-title-section">
+                <div class="results-icon">
+                  <i class="bi bi-patch-check-fill"></i>
+                </div>
+                <div>
+                  <h2 class="results-title">Suggested Hashtags</h2>
+                  <p class="results-subtitle">Copy into your video description</p>
+                </div>
+              </div>
+              <div class="hashtag-count-badge" id="hashtagCountBadge">
+                <i class="bi bi-hash"></i>
+                <span id="hashtagCount">0</span> hashtags
+              </div>
+            </div>
+
+            <div class="hashtags-display">
+              <pre class="hashtags-text" id="hashtagsText">{{ hashtags_text }}</pre>
+            </div>
+
+            <div class="action-buttons">
+              <button class="copy-btn" onclick="copyHashtags()">
+                <i class="bi bi-clipboard"></i>
+                Copy All Hashtags
+              </button>
+            </div>
+
+            <div class="hashtag-visual-grid" id="hashtagVisualGrid">
+              <!-- Hashtags will be inserted here by JavaScript -->
+            </div>
+          </div>
+
+          <script>
+            // Count and display hashtags
+            document.addEventListener('DOMContentLoaded', function() {
+              const hashtagsText = document.getElementById('hashtagsText').textContent.trim();
+              const hashtagsArray = hashtagsText.split(/\s+/).filter(tag => tag.startsWith('#') && tag.length > 1);
+              
+              // Update count
+              document.getElementById('hashtagCount').textContent = hashtagsArray.length;
+              
+              // Create visual chips
+              const visualGrid = document.getElementById('hashtagVisualGrid');
+              hashtagsArray.forEach(hashtag => {
+                const chip = document.createElement('div');
+                chip.className = 'hashtag-chip';
+                chip.innerHTML = `<i class="bi bi-hash"></i>${hashtag.substring(1)}`;
+                chip.onclick = function() {
+                  navigator.clipboard.writeText(hashtag).then(() => {
+                    if (typeof window.showToast === 'function') {
+                      window.showToast(`${hashtag} copied!`, 'success');
+                    }
+                  });
+                };
+                visualGrid.appendChild(chip);
+              });
+            });
+          </script>
+        {% endif %}
+      </div>
+    </div>
   </div>
-{% endif %}
+</div>
+
+<script>
+  // Form submission loading state
+  document.getElementById('hashtagFinderForm').addEventListener('submit', function(e) {
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+    
+    if (typeof window.showLoading === 'function') {
+      window.showLoading();
+    }
+  });
+
+  // Copy hashtags function
+  function copyHashtags() {
+    const text = document.getElementById('hashtagsText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target.closest('.copy-btn');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i>Copied!';
+      btn.style.background = '#10b981';
+      
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.style.background = '';
+      }, 2000);
+
+      if (typeof window.showToast === 'function') {
+        window.showToast('Hashtags copied to clipboard!', 'success');
+      }
+    }).catch(err => {
+      console.error('Copy failed:', err);
+      if (typeof window.showToast === 'function') {
+        window.showToast('Failed to copy. Please try again.', 'error');
+      }
+    });
+  }
+</script>
+
 {% endblock %}

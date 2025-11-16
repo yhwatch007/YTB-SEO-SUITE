@@ -1,26 +1,556 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-3">AI Tag Finder</h1>
-<p class="text-muted mb-3">
-  Enter your topic, and the AI will generate a list of SEO-friendly YouTube tags.
-</p>
+<style>
+  .tag-finder-hero {
+    position: relative;
+    padding: 3rem 0 2rem;
+    overflow: hidden;
+  }
 
-<form method="post" class="card p-3 mb-4">
-  {% csrf_token %}
-  <div class="mb-3">
-    <label class="form-label">Video topic / keyword</label>
-    <textarea name="topic" rows="2" class="form-control"
-              placeholder="Example: how to edit videos on CapCut">{{ topic }}</textarea>
-  </div>
-  <button type="submit" class="btn btn-primary">Generate tags</button>
-</form>
+  .tag-finder-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: float 22s ease-in-out infinite;
+    pointer-events: none;
+  }
 
-{% if tags_text %}
-  <div class="card p-3">
-    <h5 class="mb-2">Suggested tags</h5>
-    <p class="small text-muted mb-2">Copy this comma-separated list into YouTube Studio:</p>
-    <pre class="small bg-dark text-light p-2 rounded" style="white-space: pre-wrap;">{{ tags_text }}</pre>
+  .tag-finder-orb-1 {
+    width: 280px;
+    height: 280px;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    top: -80px;
+    left: 10%;
+    animation-delay: 0s;
+  }
+
+  .tag-finder-orb-2 {
+    width: 320px;
+    height: 320px;
+    background: linear-gradient(135deg, #ff7a00, #ec4899);
+    bottom: -100px;
+    right: 8%;
+    animation-delay: 8s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-30px, 30px) scale(1.1); }
+    66% { transform: translate(20px, -20px) scale(0.9); }
+  }
+
+  .tag-finder-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    animation: fadeInUp 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+    border: none;
+  }
+
+  .tag-finder-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5cf6, #6366f1);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .tag-finder-textarea {
+    background: var(--muted);
+    border: 2px solid transparent;
+    color: var(--text) !important;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    font-size: 15px;
+    resize: vertical;
+  }
+
+  .tag-finder-textarea:focus {
+    background: var(--panel);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    outline: none;
+    color: var(--text) !important;
+  }
+
+  .tag-finder-textarea::placeholder {
+    color: var(--sub);
+    opacity: 0.6;
+  }
+
+  .tag-finder-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tag-finder-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .tag-finder-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  }
+
+  .tag-finder-btn:hover::before {
+    left: 100%;
+  }
+
+  .tag-finder-btn:active {
+    transform: translateY(0);
+  }
+
+  .tag-finder-btn i {
+    transition: transform 0.3s ease;
+  }
+
+  .tag-finder-btn:hover i {
+    transform: scale(1.2);
+  }
+
+  .results-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+    position: relative;
+    overflow: hidden;
+    border: none;
+  }
+
+  .results-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981, #059669);
+  }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--muted);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .results-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .results-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .results-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .results-subtitle {
+    color: var(--sub);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .tag-count-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tags-display {
+    background: var(--muted);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .tags-display::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .tags-display::-webkit-scrollbar-track {
+    background: var(--panel);
+    border-radius: 5px;
+  }
+
+  .tags-display::-webkit-scrollbar-thumb {
+    background: #8b5cf6;
+    border-radius: 5px;
+  }
+
+  .tags-text {
+    color: var(--text) !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'Segoe UI Mono', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .copy-btn {
+    background: #8b5cf6;
+    border: none;
+    color: white;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .copy-btn:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+
+  .copy-btn i {
+    font-size: 16px;
+  }
+
+  .tag-visual-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--muted);
+  }
+
+  .tag-chip {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.1));
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--text);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tag-chip:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .tag-chip i {
+    font-size: 10px;
+    color: #8b5cf6;
+  }
+
+  .info-panel {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.1));
+    border-left: 4px solid #8b5cf6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    animation: fadeInUp 0.5s ease-out 0.2s both;
+  }
+
+  .info-panel h5 {
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-panel i {
+    color: #8b5cf6;
+    font-size: 20px;
+  }
+
+  .info-panel ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .info-panel li {
+    color: var(--sub);
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--muted), transparent);
+    margin: 3rem 0;
+    border: none;
+  }
+
+  @media (max-width: 768px) {
+    .tag-finder-hero {
+      padding: 2rem 0 1rem;
+    }
+
+    .tag-finder-card, .results-card {
+      padding: 1.5rem;
+    }
+
+    .results-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .results-title-section {
+      width: 100%;
+    }
+
+    .results-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    .results-title {
+      font-size: 1.25rem;
+    }
+
+    .action-buttons {
+      width: 100%;
+    }
+
+    .copy-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="tag-finder-hero">
+  <div class="tag-finder-orb tag-finder-orb-1"></div>
+  <div class="tag-finder-orb tag-finder-orb-2"></div>
+
+  <div class="container" style="position: relative; z-index: 1;">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="text-center mb-4">
+          <h1 class="mb-3" style="font-weight: 700; color: var(--text);">
+            <i class="bi bi-tags" style="color: #8b5cf6;"></i>
+            AI Tag Finder
+          </h1>
+          <p class="text-muted" style="font-size: 16px;">
+            Generate SEO-optimized YouTube tags instantly. Perfect for maximizing discoverability.
+          </p>
+        </div>
+
+        <form method="post" class="tag-finder-card" id="tagFinderForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-search" style="color: #8b5cf6;"></i>
+              Video Topic / Keyword
+            </label>
+            <textarea 
+              name="topic" 
+              rows="3" 
+              class="form-control tag-finder-textarea"
+              placeholder="Example: how to edit videos on CapCut for beginners"
+              required
+            >{{ topic }}</textarea>
+            <div style="font-size: 13px; color: var(--sub); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-info-circle"></i>
+              <span>Include specific keywords, niche terms, and variations</span>
+            </div>
+          </div>
+          
+          <button type="submit" class="tag-finder-btn">
+            <i class="bi bi-tags-fill"></i>
+            Generate Tags
+          </button>
+        </form>
+
+        <div class="info-panel mt-4">
+          <h5>
+            <i class="bi bi-lightbulb-fill"></i>
+            Tag Best Practices
+          </h5>
+          <ul>
+            <li>Use a mix of broad and specific tags (e.g., "video editing" + "CapCut tutorial")</li>
+            <li>Include your main keyword in the first few tags</li>
+            <li>Add variations and related terms (synonyms, misspellings)</li>
+            <li>YouTube allows up to 500 characters total for tags</li>
+            <li>Focus on relevance over quantity - quality tags perform better</li>
+          </ul>
+        </div>
+
+        {% if tags_text %}
+          <hr class="divider">
+
+          <div class="results-card">
+            <div class="results-header">
+              <div class="results-title-section">
+                <div class="results-icon">
+                  <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                  <h2 class="results-title">Suggested Tags</h2>
+                  <p class="results-subtitle">Copy and paste into YouTube Studio</p>
+                </div>
+              </div>
+              <div class="tag-count-badge" id="tagCountBadge">
+                <i class="bi bi-hash"></i>
+                <span id="tagCount">0</span> tags
+              </div>
+            </div>
+
+            <div class="tags-display">
+              <pre class="tags-text" id="tagsText">{{ tags_text }}</pre>
+            </div>
+
+            <div class="action-buttons">
+              <button class="copy-btn" onclick="copyTags()">
+                <i class="bi bi-clipboard"></i>
+                Copy All Tags
+              </button>
+            </div>
+
+            <div class="tag-visual-list" id="tagVisualList">
+              <!-- Tags will be inserted here by JavaScript -->
+            </div>
+          </div>
+
+          <script>
+            // Count and display tags
+            document.addEventListener('DOMContentLoaded', function() {
+              const tagsText = document.getElementById('tagsText').textContent.trim();
+              const tagsArray = tagsText.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+              
+              // Update count
+              document.getElementById('tagCount').textContent = tagsArray.length;
+              
+              // Create visual chips
+              const visualList = document.getElementById('tagVisualList');
+              tagsArray.forEach(tag => {
+                const chip = document.createElement('div');
+                chip.className = 'tag-chip';
+                chip.innerHTML = `<i class="bi bi-tag-fill"></i>${tag}`;
+                visualList.appendChild(chip);
+              });
+            });
+          </script>
+        {% endif %}
+      </div>
+    </div>
   </div>
-{% endif %}
+</div>
+
+<script>
+  // Form submission loading state
+  document.getElementById('tagFinderForm').addEventListener('submit', function(e) {
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+    
+    if (typeof window.showLoading === 'function') {
+      window.showLoading();
+    }
+  });
+
+  // Copy tags function
+  function copyTags() {
+    const text = document.getElementById('tagsText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target.closest('.copy-btn');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i>Copied!';
+      btn.style.background = '#10b981';
+      
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.style.background = '';
+      }, 2000);
+
+      if (typeof window.showToast === 'function') {
+        window.showToast('Tags copied to clipboard!', 'success');
+      }
+    }).catch(err => {
+      console.error('Copy failed:', err);
+      if (typeof window.showToast === 'function') {
+        window.showToast('Failed to copy. Please try again.', 'error');
+      }
+    });
+  }
+</script>
+
 {% endblock %}

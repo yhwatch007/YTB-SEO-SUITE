@@ -2,60 +2,558 @@
 {% block title %}Library{% endblock %}
 {% block content %}
 <style>
-  :root { --bg:#1f2227; --panel:#272b33; --muted:#313642; --accent:#ff7a00; --text:#fff; --sub:#cfd3da; }
-  body{ background:var(--bg)!important; color:var(--text)!important; }
-  .panel{ background:var(--panel); border-radius:16px; padding:16px; }
-  .badge-soft{ background:var(--muted); color:var(--sub); border-radius:999px; padding:6px 10px; }
+  :root {
+    --bg: #050816;
+    --panel: #171a20;
+    --muted: #20222b;
+    --accent: #ff7a00;
+    --text: #f5f5f5;
+    --sub: #cfd3da;
+  }
+  
+  body.light-mode {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --muted: #e3e7f2;
+    --text: #111827;
+    --sub: #4b5563;
+  }
+  
+  body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+  }
+
+  /* Header section */
+  .library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .library-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .library-title i {
+    color: var(--accent);
+  }
+
+  .library-stats {
+    display: flex;
+    gap: 16px;
+    padding: 12px 20px;
+    background: var(--panel);
+    border-radius: 12px;
+    border: 1px solid var(--muted);
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Library card */
+  .library-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--muted);
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .library-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #ff9933);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .library-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 24px rgba(255, 122, 0, 0.15);
+  }
+
+  .library-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  /* Card header */
+  .card-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .keyword-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .score-badge {
+    background: linear-gradient(135deg, var(--accent), #ff9933);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(255, 122, 0, 0.3);
+  }
+
+  /* Metadata section */
+  .metadata-section {
+    margin: 16px 0;
+    padding: 16px;
+    background: var(--muted);
+    border-radius: 12px;
+  }
+
+  .metadata-item {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .metadata-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .metadata-label {
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 80px;
+  }
+
+  .metadata-value {
+    color: var(--sub);
+    flex: 1;
+    word-break: break-word;
+  }
+
+  /* Feature badges */
+  .features-row {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+
+  .feature-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--muted);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--sub);
+    transition: all 0.2s ease;
+  }
+
+  .feature-badge:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .feature-badge.active {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid #22c55e;
+  }
+
+  .feature-badge.inactive {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+  }
+
+  /* Card footer */
+  .card-footer-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--muted);
+  }
+
+  .saved-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--sub);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--muted);
+    background: transparent;
+    color: var(--sub);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .action-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  /* Pagination */
+  .pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+    animation: fadeInUp 0.6s ease 0.2s both;
+  }
+
+  .pagination {
+    display: flex;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .page-item {
+    margin: 0;
+  }
+
+  .page-link {
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--panel);
+    border: 1px solid var(--muted);
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+
+  .page-link:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .page-item.active .page-link {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .empty-description {
+    color: var(--sub);
+    margin-bottom: 24px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .empty-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--accent);
+    color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .empty-action:hover {
+    background: #ff9933;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(255, 122, 0, 0.3);
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .library-card {
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .library-card:nth-child(1) { animation-delay: 0.1s; }
+  .library-card:nth-child(2) { animation-delay: 0.15s; }
+  .library-card:nth-child(3) { animation-delay: 0.2s; }
+  .library-card:nth-child(4) { animation-delay: 0.25s; }
+  .library-card:nth-child(5) { animation-delay: 0.3s; }
+  .library-card:nth-child(6) { animation-delay: 0.35s; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .library-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .library-stats {
+      width: 100%;
+      justify-content: space-around;
+    }
+
+    .library-title {
+      font-size: 1.5rem;
+    }
+
+    .score-badge {
+      font-size: 0.85rem;
+      padding: 6px 12px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>
 
-<h2 class="mb-3">Library</h2>
+<!-- Header -->
+<div class="library-header">
+  <h2 class="library-title">
+    <i class="bi bi-collection-fill"></i>
+    Library
+  </h2>
+  {% if page.object_list %}
+  <div class="library-stats">
+    <div class="stat-item">
+      <div class="stat-value">{{ page.paginator.count }}</div>
+      <div class="stat-label">Saved</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ page.number }}</div>
+      <div class="stat-label">Page</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
 
+<!-- Alert Messages -->
 {% if messages %}
   {% for m in messages %}
-    <div class="alert alert-success">{{ m }}</div>
+    <div class="alert alert-success d-flex align-items-center gap-2" style="animation: fadeInUp 0.5s ease;">
+      <i class="bi bi-check-circle-fill"></i>
+      {{ m }}
+    </div>
   {% endfor %}
 {% endif %}
 
+<!-- Library Grid -->
 {% if page.object_list %}
   <div class="row g-3">
     {% for item in page.object_list %}
     <div class="col-lg-6">
-      <div class="panel h-100">
-        <div class="d-flex justify-content-between">
-          <div class="fw-bold">{{ item.keyword }}</div>
-          <div class="badge-soft">Score: {{ item.score }}</div>
+      <div class="library-card">
+        <!-- Card Header -->
+        <div class="card-header-section">
+          <div class="keyword-title">{{ item.keyword }}</div>
+          <div class="score-badge">
+            <i class="bi bi-star-fill"></i> {{ item.score }}
+          </div>
         </div>
-        <div class="mt-2 text-secondary" style="font-size:.9rem;">
-          <div><b>Title:</b> {{ item.title|default:"—" }}</div>
-          <div><b>Tags:</b> {{ item.tags_text|default:"—" }}</div>
-          <div><b>Entities:</b> {{ item.entities|default:"—" }}</div>
+
+        <!-- Metadata -->
+        <div class="metadata-section">
+          <div class="metadata-item">
+            <div class="metadata-label">
+              <i class="bi bi-card-heading"></i> Title:
+            </div>
+            <div class="metadata-value">{{ item.title|default:"Not set" }}</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">
+              <i class="bi bi-tags-fill"></i> Tags:
+            </div>
+            <div class="metadata-value">{{ item.tags_text|default:"Not set" }}</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">
+              <i class="bi bi-lightbulb-fill"></i> Topics:
+            </div>
+            <div class="metadata-value">{{ item.entities|default:"Not set" }}</div>
+          </div>
         </div>
-        <div class="mt-2 d-flex gap-2">
-          <span class="badge-soft">Thumbnail: {% if item.has_custom_thumbnail %}✅{% else %}❌{% endif %}</span>
-          <span class="badge-soft">Playlists: {% if item.in_playlists %}✅{% else %}❌{% endif %}</span>
+
+        <!-- Features -->
+        <div class="features-row">
+          <div class="feature-badge {% if item.has_custom_thumbnail %}active{% else %}inactive{% endif %}">
+            <i class="bi bi-image-fill"></i>
+            Thumbnail {% if item.has_custom_thumbnail %}✓{% else %}✗{% endif %}
+          </div>
+          <div class="feature-badge {% if item.in_playlists %}active{% else %}inactive{% endif %}">
+            <i class="bi bi-collection-play-fill"></i>
+            Playlists {% if item.in_playlists %}✓{% else %}✗{% endif %}
+          </div>
         </div>
-        <div class="mt-2 text-secondary" style="font-size:.85rem;">
-          Saved: {{ item.created_at|date:"Y-m-d H:i" }}
+
+        <!-- Card Footer -->
+        <div class="card-footer-section">
+          <div class="saved-date">
+            <i class="bi bi-clock-fill"></i>
+            {{ item.created_at|date:"M d, Y" }}
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn" onclick="viewDetails({{ item.id }})">
+              <i class="bi bi-eye-fill"></i>
+              View
+            </button>
+            <button class="action-btn" onclick="exportItem({{ item.id }})">
+              <i class="bi bi-download"></i>
+              Export
+            </button>
+          </div>
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
 
-  <!-- pagination -->
-  <nav class="mt-3">
+  <!-- Pagination -->
+  <div class="pagination-wrapper">
     <ul class="pagination">
       {% if page.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}">Previous</a></li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page.previous_page_number }}">
+            <i class="bi bi-chevron-left"></i> Previous
+          </a>
+        </li>
       {% endif %}
-      <li class="page-item active"><span class="page-link">{{ page.number }}</span></li>
+      
+      <li class="page-item active">
+        <span class="page-link">{{ page.number }}</span>
+      </li>
+      
       {% if page.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}">Next</a></li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page.next_page_number }}">
+            Next <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
       {% endif %}
     </ul>
-  </nav>
+  </div>
 
 {% else %}
-  <div class="panel">No saved optimizations yet.</div>
+  <!-- Empty State -->
+  <div class="empty-state">
+    <div class="empty-icon">
+      <i class="bi bi-inbox"></i>
+    </div>
+    <h3 class="empty-title">No Saved Optimizations Yet</h3>
+    <p class="empty-description">
+      Start optimizing your YouTube videos and save your work here for easy access later.
+    </p>
+    <a href="{% url 'optimize' %}" class="empty-action">
+      <i class="bi bi-plus-circle-fill"></i>
+      Start Optimizing
+    </a>
+  </div>
 {% endif %}
+
+<script>
+function viewDetails(id) {
+  // Placeholder - implement view details functionality
+  console.log('View item:', id);
+  alert('View details feature coming soon!');
+}
+
+function exportItem(id) {
+  // Placeholder - implement export functionality
+  console.log('Export item:', id);
+  alert('Export feature coming soon!');
+}
+</script>
+
 {% endblock %}

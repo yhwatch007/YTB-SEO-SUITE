@@ -4,126 +4,460 @@
 {% block content %}
 
 <style>
-  :root { --bg:#1f2227; --panel:#272b33; --muted:#313642; --accent:#ff7a00; --text:#fff; --sub:#cfd3da; }
-  body{ background:var(--bg)!important; color:var(--text)!important; }
-  .panel{ background:var(--panel); border-radius:16px; padding:16px; }
-  .form-control, .form-check-input{ background:var(--muted); border:none; color:var(--text); }
-  .form-control:focus{ box-shadow:0 0 0 .2rem rgba(255,122,0,.25); }
-  .btn-accent{ background:var(--accent); border-color:var(--accent); color:#111; font-weight:700; }
-  .btn-accent:hover{ filter:brightness(1.05); }
-  .badge-soft{ background:var(--muted); color:var(--sub); border-radius:999px; padding:6px 10px; font-size: .8rem; }
-  .score-bubble{ background:var(--muted); border-radius:14px; padding:10px 14px; display:inline-block; font-weight:800; }
-  .fix-item{ background:var(--muted); border-radius:12px; padding:8px 10px; }
-  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
-  /* pillar bars */
-  .pillar-row{ margin-bottom:.45rem; }
-  .pillar-top{ display:flex; justify-content:space-between; align-items:center; font-size:.82rem; color:var(--sub); }
-  .pillar-name{ font-weight:600; }
-  .pillar-value{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; }
-  .pillar-bar-outer{
-    background:var(--muted);
-    border-radius:999px;
-    height:8px;
-    overflow:hidden;
-    margin-top:4px;
+  .panel {
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,0.05);
   }
-  .pillar-bar-inner{
-    height:100%;
-    border-radius:999px;
-    width:0%;
-    transition:width .4s ease-out;
+  
+  body.theme-light .panel {
+    border-color: rgba(0,0,0,0.08);
   }
-  .bar-good{ background:linear-gradient(90deg,#22c55e,#a3e635); }
-  .bar-medium{ background:linear-gradient(90deg,#eab308,#f97316); }
-  .bar-low{ background:linear-gradient(90deg,#f97316,#ef4444); }
-
-  .pillars-grid{
-    display:flex;
-    flex-direction:column;
-    gap:.2rem;
+  
+  .form-control, .form-select {
+    background: var(--muted);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: var(--text) !important; /* FIXED: Force text color */
+    padding: 12px 16px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+  }
+  
+  body.theme-light .form-control,
+  body.theme-light .form-select {
+    border-color: rgba(0,0,0,0.08);
+    color: var(--text) !important;
+  }
+  
+  /* FIXED: Ensure placeholder is visible */
+  .form-control::placeholder {
+    color: var(--sub);
+    opacity: 0.6;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(255,122,0,.15);
+    border-color: var(--accent);
+    background: var(--muted);
+    color: var(--text) !important;
+  }
+  
+  .form-label {
+    color: var(--sub);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .char-counter {
+    font-size: 0.8rem;
+    color: var(--sub);
+    font-family: monospace;
+  }
+  
+  .btn-accent {
+    background: var(--accent);
+    border: none;
+    color: #111;
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-accent:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(255,122,0,0.3);
+  }
+  
+  .badge-soft {
+    background: var(--muted);
+    color: var(--sub);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+  }
+  
+  .score-bubble {
+    background: linear-gradient(135deg, var(--accent), #f97316);
+    border-radius: 16px;
+    padding: 16px 24px;
+    display: inline-block;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(255,122,0,0.3);
+  }
+  
+  .fix-item {
+    background: var(--muted);
+    border-radius: 12px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--accent);
+    transition: all 0.2s ease;
+  }
+  
+  .fix-item:hover {
+    transform: translateX(4px);
+    background: rgba(255,122,0,0.1);
+  }
+  
+  .mono {
+    font-family: ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 0.9rem;
   }
 
-  .ai-badge{
-    background:rgba(99,102,241,0.12);
-    color:#a5b4fc;
-    border-radius:999px;
-    padding:4px 9px;
-    font-size:.75rem;
+  /* FIXED: Better checkbox styling */
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px 16px;
+    background: var(--muted);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .custom-checkbox:hover {
+    background: rgba(255,122,0,0.1);
+  }
+  
+  .custom-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  
+  .custom-checkbox label {
+    margin: 0;
+    cursor: pointer;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Pillar bars */
+  .pillar-row {
+    margin-bottom: 16px;
+  }
+  
+  .pillar-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .pillar-name {
+    font-weight: 600;
+    color: var(--text);
+  }
+  
+  .pillar-value {
+    font-family: monospace;
+    color: var(--sub);
+    font-weight: 700;
+  }
+  
+  .pillar-bar-outer {
+    background: var(--muted);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .pillar-bar-inner {
+    height: 100%;
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .pillar-bar-inner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .bar-good {
+    background: linear-gradient(90deg, #22c55e, #10b981);
+  }
+  
+  .bar-medium {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+  }
+  
+  .bar-low {
+    background: linear-gradient(90deg, #f97316, #ef4444);
+  }
+
+  .ai-badge {
+    background: rgba(99,102,241,0.15);
+    color: #a5b4fc;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .suggestion-item {
+    background: var(--muted);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .suggestion-item:hover {
+    border-left-color: var(--accent);
+    transform: translateX(4px);
+  }
+  
+  /* FIXED: AI suggestions clean display */
+  .ai-suggestion-text {
+    color: var(--text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  
+  .use-btn {
+    background: var(--accent);
+    border: none;
+    color: #111;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  .use-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+  }
+  
+  .section-title i {
+    color: var(--accent);
+  }
+  
+  /* FIXED: Clean entity display - no URLs */
+  .entity-chip {
+    background: var(--muted);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+  }
+  
+  /* Tips sidebar */
+  .tips-panel {
+    background: linear-gradient(135deg, rgba(255,122,0,0.1), rgba(249,115,22,0.05));
+    border-radius: 18px;
+    padding: 24px;
+    border: 1px solid rgba(255,122,0,0.2);
+    position: sticky;
+    top: 80px;
+  }
+  
+  .tips-panel h6 {
+    color: var(--accent);
+    font-weight: 800;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .tips-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .tips-panel li {
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+    color: var(--sub);
+    line-height: 1.6;
+  }
+  
+  .tips-panel li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+  }
+  
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .panel {
+    animation: fadeInUp 0.5s ease-out;
+  }
+  
+  /* Custom scrollbar */
+  textarea::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  textarea::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
+  
+  textarea::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
   }
 </style>
 
-<h2 class="mb-3">Optimize Video</h2>
+<h2 class="mb-4 d-flex align-items-center gap-2">
+  <i class="bi bi-magic" style="color:var(--accent)"></i>
+  Optimize Video
+</h2>
 
 <div class="row g-3">
   <div class="col-lg-8">
     <div class="panel">
       <form id="optimizeForm" method="get" action="{% url 'optimize' %}">
         <div class="mb-3">
-          <label class="form-label">Main Keyword</label>
-          <input name="keyword" class="form-control" value="{{ keyword|default:'' }}" required>
+          <label class="form-label">Main Keyword <span style="color:var(--accent)">*</span></label>
+          <input name="keyword" class="form-control" placeholder="e.g. python tutorial for beginners" value="{{ keyword|default:'' }}" required>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Title <small class="text-secondary">(0/100)</small></label>
-          <input name="title" maxlength="100" class="form-control" value="{{ title|default:'' }}">
+          <label class="form-label d-flex justify-content-between">
+            <span>Title</span>
+            <span class="char-counter" id="titleCounter">0/100</span>
+          </label>
+          <input name="title" maxlength="100" class="form-control" placeholder="Your video title..." value="{{ title|default:'' }}" oninput="updateCounter('title', 100)">
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Description <small class="text-secondary">(0/5000)</small></label>
-          <textarea name="description" maxlength="5000" rows="6" class="form-control">{{ description|default:'' }}</textarea>
+          <label class="form-label d-flex justify-content-between">
+            <span>Description</span>
+            <span class="char-counter" id="descCounter">0/5000</span>
+          </label>
+          <textarea name="description" maxlength="5000" rows="6" class="form-control" placeholder="Your video description with timestamps, links, and key information..." oninput="updateCounter('description', 5000)">{{ description|default:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Tags (comma separated) <small class="text-secondary">(0/500)</small></label>
-          <input name="tags" maxlength="500" class="form-control" value="{{ tags|default:'' }}">
+          <label class="form-label d-flex justify-content-between">
+            <span>Tags (comma separated)</span>
+            <span class="char-counter" id="tagsCounter">0/500</span>
+          </label>
+          <input name="tags" maxlength="500" class="form-control" placeholder="python, tutorial, coding, programming..." value="{{ tags|default:'' }}" oninput="updateCounter('tags', 500)">
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="has_custom_thumbnail" {% if has_custom_thumbnail %}checked{% endif %}>
-          <label class="form-check-label">Video has a custom thumbnail</label>
-        </div>
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" name="in_playlists" {% if in_playlists %}checked{% endif %}>
-          <label class="form-check-label">Video will be in 1 or more playlists</label>
+        <!-- FIXED: Better checkbox layout -->
+        <div class="checkbox-wrapper">
+          <div class="custom-checkbox">
+            <input class="form-check-input" type="checkbox" id="thumbnail" name="has_custom_thumbnail" {% if has_custom_thumbnail %}checked{% endif %}>
+            <label for="thumbnail">Custom thumbnail</label>
+          </div>
+          <div class="custom-checkbox">
+            <input class="form-check-input" type="checkbox" id="playlist" name="in_playlists" {% if in_playlists %}checked{% endif %}>
+            <label for="playlist">In playlist(s)</label>
+          </div>
         </div>
 
         <div class="d-flex gap-2">
-          <button class="btn btn-accent" name="action" value="analyze">Analyze It!</button>
-          <button class="btn btn-secondary" name="action" value="save" disabled>Save It! (use button below)</button>
+          <button class="btn btn-accent" name="action" value="analyze">
+            <i class="bi bi-cpu-fill me-2"></i>Analyze It!
+          </button>
         </div>
       </form>
     </div>
 
     {% if error %}
-      <div class="alert alert-danger mt-3">{{ error }}</div>
+      <div class="alert alert-danger mt-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      </div>
     {% endif %}
 
     {% if analysis %}
       <div class="panel mt-3">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
           <div>
-            <div class="text-secondary">Ranking Potential</div>
-            <div class="score-bubble fs-4">{{ analysis.score }}/100</div>
+            <div class="text-secondary mb-2">Overall SEO Score</div>
+            <div class="score-bubble fs-3">{{ analysis.score }}/100</div>
           </div>
-          <div>
-            <span class="badge-soft">Title len: {{ analysis.title_len }}</span>
-            <span class="badge-soft">Desc len: {{ analysis.desc_len }}</span>
-            <span class="badge-soft">Tags: {{ analysis.tags_count }}</span>
-            <span class="badge-soft">SERP sample: {{ analysis.serp_count }}</span>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge-soft"><i class="bi bi-fonts me-1"></i>Title: {{ analysis.title_len }}</span>
+            <span class="badge-soft"><i class="bi bi-text-paragraph me-1"></i>Desc: {{ analysis.desc_len }}</span>
+            <span class="badge-soft"><i class="bi bi-tags-fill me-1"></i>Tags: {{ analysis.tags_count }}</span>
           </div>
           {% if analysis.meta_score %}
           <div>
-            <div class="text-secondary">Metadata Score</div>
-            <div class="score-bubble fs-5">{{ analysis.meta_score }}/100</div>
+            <div class="text-secondary mb-2">Metadata Score</div>
+            <div class="score-bubble fs-4">{{ analysis.meta_score }}/100</div>
           </div>
           {% endif %}
         </div>
 
         {% if analysis.pillars %}
-          <hr>
-          <h6 class="mb-2">Pillar Breakdown</h6>
-          <div class="pillars-grid">
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+          <div class="section-title">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            SEO Breakdown
+          </div>
+          <div>
             {% for name, info in analysis.pillars.items %}
               <div class="pillar-row">
                 <div class="pillar-top">
@@ -132,17 +466,11 @@
                 </div>
                 <div class="pillar-bar-outer">
                   {% if info.pct >= 70 %}
-                    {% with bar_class="bar-good" %}
-                      <div class="pillar-bar-inner {{ bar_class }}" style="width: {{ info.pct }}%;"></div>
-                    {% endwith %}
+                    <div class="pillar-bar-inner bar-good" style="width: {{ info.pct }}%;"></div>
                   {% elif info.pct >= 40 %}
-                    {% with bar_class="bar-medium" %}
-                      <div class="pillar-bar-inner {{ bar_class }}" style="width: {{ info.pct }}%;"></div>
-                    {% endwith %}
+                    <div class="pillar-bar-inner bar-medium" style="width: {{ info.pct }}%;"></div>
                   {% else %}
-                    {% with bar_class="bar-low" %}
-                      <div class="pillar-bar-inner {{ bar_class }}" style="width: {{ info.pct }}%;"></div>
-                    {% endwith %}
+                    <div class="pillar-bar-inner bar-low" style="width: {{ info.pct }}%;"></div>
                   {% endif %}
                 </div>
               </div>
@@ -150,79 +478,109 @@
           </div>
         {% endif %}
 
-        <hr>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
 
-        <h6 class="mb-2">Top Entities to Cover</h6>
+        <!-- FIXED: Clean entity display -->
+        <div class="section-title">
+          <i class="bi bi-diagram-3-fill"></i>
+          Key Topics to Cover
+        </div>
         {% if analysis.entities %}
           <div class="d-flex flex-wrap gap-2">
             {% for e in analysis.entities %}
-              <span class="badge-soft">{{ e }}</span>
+              {% if not e|lower|slice:":4" == "http" %}
+                <span class="entity-chip">{{ e }}</span>
+              {% endif %}
             {% endfor %}
           </div>
         {% else %}
-          <div class="text-secondary">No entities extracted.</div>
+          <div class="text-secondary">No topics extracted yet.</div>
         {% endif %}
 
         {% if analysis.meta_breakdown %}
-          <hr>
-          <h6 class="mb-2">Metadata Breakdown</h6>
-          <ul class="mb-0">
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+          <div class="section-title">
+            <i class="bi bi-list-check"></i>
+            Metadata Details
+          </div>
+          <div class="row g-2">
             {% for k,v in analysis.meta_breakdown.items %}
-              <li>{{ k }}: <b>{{ v }}</b></li>
+              <div class="col-md-6">
+                <div class="badge-soft w-100 text-start">
+                  {{ k }}: <strong>{{ v }}</strong>
+                </div>
+              </div>
             {% endfor %}
-          </ul>
+          </div>
         {% endif %}
 
         {% if analysis.checks %}
-          <hr>
-          <h6 class="mb-2">Checklist</h6>
-          <ul class="mb-0">
-            <li>Custom thumbnail: {% if analysis.checks.custom_thumbnail %}✅{% else %}❌{% endif %}</li>
-            <li>In playlists: {% if analysis.checks.in_playlists %}✅{% else %}❌{% endif %}</li>
-          </ul>
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+          <div class="section-title">
+            <i class="bi bi-check2-square"></i>
+            Checklist
+          </div>
+          <div class="d-flex gap-3">
+            <div class="badge-soft">
+              {% if analysis.checks.custom_thumbnail %}
+                <i class="bi bi-check-circle-fill text-success me-1"></i>
+              {% else %}
+                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+              {% endif %}
+              Custom thumbnail
+            </div>
+            <div class="badge-soft">
+              {% if analysis.checks.in_playlists %}
+                <i class="bi bi-check-circle-fill text-success me-1"></i>
+              {% else %}
+                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+              {% endif %}
+              In playlists
+            </div>
+          </div>
         {% endif %}
 
         {% if analysis.fixes %}
-          <hr>
-          <h6 class="mb-2">Top Fixes</h6>
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+          <div class="section-title">
+            <i class="bi bi-tools"></i>
+            Recommended Improvements
+          </div>
           <div class="d-flex flex-column gap-2">
             {% for f in analysis.fixes %}
-              <div class="fix-item">• {{ f }}</div>
+              <div class="fix-item">{{ f }}</div>
             {% endfor %}
           </div>
         {% endif %}
 
         {% if analysis.suggested_titles or analysis.suggested_description or analysis.suggested_tags %}
-          <hr>
-          <h6 class="mb-2">Suggested Metadata (rule-based)</h6>
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+          <div class="section-title">
+            <i class="bi bi-lightbulb-fill"></i>
+            SEO-Optimized Suggestions
+          </div>
 
           {% if analysis.suggested_titles %}
-            <div class="mb-2">
-              <div class="text-secondary mb-1">Titles</div>
-              <ul class="mb-0">
-                {% for t in analysis.suggested_titles %}
-                  <li class="mono d-flex justify-content-between align-items-center gap-2">
-                    <span>{{ t }}</span>
-                    <button type="button"
-                            class="btn btn-sm btn-accent"
-                            onclick="useSuggestion('{{ t|escapejs }}', null, null)">
-                      Use
-                    </button>
-                  </li>
-                {% endfor %}
-              </ul>
+            <div class="mb-3">
+              <div class="text-secondary mb-2 small fw-bold">SUGGESTED TITLES</div>
+              {% for t in analysis.suggested_titles %}
+                <div class="suggestion-item d-flex justify-content-between align-items-center gap-3">
+                  <span class="ai-suggestion-text flex-grow-1">{{ t }}</span>
+                  <button type="button" class="btn use-btn" onclick="useSuggestion('{{ t|escapejs }}', null, null)">
+                    <i class="bi bi-check-lg me-1"></i>Use
+                  </button>
+                </div>
+              {% endfor %}
             </div>
           {% endif %}
 
           {% if analysis.suggested_description %}
-            <div class="mb-2">
-              <div class="text-secondary mb-1">Description</div>
-              <div class="d-flex gap-2">
-                <div class="mono flex-grow-1">{{ analysis.suggested_description }}</div>
-                <button type="button"
-                        class="btn btn-sm btn-accent"
-                        onclick="useSuggestion(null, '{{ analysis.suggested_description|escapejs }}', null)">
-                  Use
+            <div class="mb-3">
+              <div class="text-secondary mb-2 small fw-bold">SUGGESTED DESCRIPTION</div>
+              <div class="suggestion-item d-flex justify-content-between align-items-start gap-3">
+                <span class="ai-suggestion-text flex-grow-1">{{ analysis.suggested_description }}</span>
+                <button type="button" class="btn use-btn" onclick="useSuggestion(null, '{{ analysis.suggested_description|escapejs }}', null)">
+                  <i class="bi bi-check-lg me-1"></i>Use
                 </button>
               </div>
             </div>
@@ -230,72 +588,60 @@
 
           {% if analysis.suggested_tags %}
             {% with analysis.suggested_tags|join:", " as sug_tags_string %}
-            <div class="mb-2">
-              <div class="text-secondary mb-1">Tags</div>
-              <div class="d-flex flex-wrap gap-2 align-items-center">
-                <div class="d-flex flex-wrap gap-2">
+            <div class="mb-3">
+              <div class="text-secondary mb-2 small fw-bold">SUGGESTED TAGS</div>
+              <div class="suggestion-item d-flex flex-wrap align-items-center gap-2">
+                <div class="d-flex flex-wrap gap-2 flex-grow-1">
                   {% for t in analysis.suggested_tags %}
-                    <span class="badge-soft">{{ t }}</span>
+                    <span class="entity-chip">{{ t }}</span>
                   {% endfor %}
                 </div>
-                <button type="button"
-                        class="btn btn-sm btn-accent"
-                        onclick="useSuggestion(null, null, '{{ sug_tags_string|escapejs }}')">
-                  Use all
+                <button type="button" class="btn use-btn" onclick="useSuggestion(null, null, '{{ sug_tags_string|escapejs }}')">
+                  <i class="bi bi-check-lg me-1"></i>Use All
                 </button>
               </div>
             </div>
             {% endwith %}
           {% endif %}
-
-          {% if analysis.suggested_hashtags %}
-            <div class="mb-2">
-              <div class="text-secondary mb-1">Hashtags</div>
-              <div class="d-flex flex-wrap gap-2">
-                {% for h in analysis.suggested_hashtags %}
-                  <span class="badge-soft">{{ h }}</span>
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
         {% endif %}
 
+        <!-- FIXED: Clean AI suggestions display -->
         {% if analysis.ai_metadata or analysis.ai_metadata_raw %}
-          <hr>
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <h6 class="mb-0">AI-Powered Suggestions</h6>
-            <span class="ai-badge"><i class="bi bi-robot"></i> Gemini</span>
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="section-title mb-0">
+              <i class="bi bi-robot"></i>
+              AI-Generated Content
+            </div>
+            <span class="ai-badge">
+              <i class="bi bi-stars"></i>
+              Gemini AI
+            </span>
           </div>
 
           {% if analysis.ai_metadata %}
             {% with ai=analysis.ai_metadata %}
               {% if ai.titles %}
-                <div class="mb-2">
-                  <div class="text-secondary mb-1">AI Titles</div>
-                  <ul class="mb-0">
-                    {% for t in ai.titles %}
-                      <li class="mono d-flex justify-content-between align-items-center gap-2">
-                        <span>{{ t }}</span>
-                        <button type="button"
-                                class="btn btn-sm btn-accent"
-                                onclick="useSuggestion('{{ t|escapejs }}', null, null)">
-                          Use
-                        </button>
-                      </li>
-                    {% endfor %}
-                  </ul>
+                <div class="mb-3">
+                  <div class="text-secondary mb-2 small fw-bold">AI TITLES</div>
+                  {% for t in ai.titles %}
+                    <div class="suggestion-item d-flex justify-content-between align-items-center gap-3">
+                      <span class="ai-suggestion-text flex-grow-1">{{ t }}</span>
+                      <button type="button" class="btn use-btn" onclick="useSuggestion('{{ t|escapejs }}', null, null)">
+                        <i class="bi bi-check-lg me-1"></i>Use
+                      </button>
+                    </div>
+                  {% endfor %}
                 </div>
               {% endif %}
 
               {% if ai.description %}
-                <div class="mb-2">
-                  <div class="text-secondary mb-1">AI Description</div>
-                  <div class="d-flex gap-2">
-                    <div class="mono flex-grow-1">{{ ai.description }}</div>
-                    <button type="button"
-                            class="btn btn-sm btn-accent"
-                            onclick="useSuggestion(null, '{{ ai.description|escapejs }}', null)">
-                      Use
+                <div class="mb-3">
+                  <div class="text-secondary mb-2 small fw-bold">AI DESCRIPTION</div>
+                  <div class="suggestion-item d-flex justify-content-between align-items-start gap-3">
+                    <span class="ai-suggestion-text flex-grow-1">{{ ai.description }}</span>
+                    <button type="button" class="btn use-btn" onclick="useSuggestion(null, '{{ ai.description|escapejs }}', null)">
+                      <i class="bi bi-check-lg me-1"></i>Use
                     </button>
                   </div>
                 </div>
@@ -303,93 +649,122 @@
 
               {% if ai.tags %}
                 {% with ai.tags|join:", " as ai_tags_string %}
-                <div class="mb-2">
-                  <div class="text-secondary mb-1">AI Tags</div>
-                  <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <div class="d-flex flex-wrap gap-2">
+                <div class="mb-3">
+                  <div class="text-secondary mb-2 small fw-bold">AI TAGS</div>
+                  <div class="suggestion-item d-flex flex-wrap align-items-center gap-2">
+                    <div class="d-flex flex-wrap gap-2 flex-grow-1">
                       {% for t in ai.tags %}
-                        <span class="badge-soft">{{ t }}</span>
+                        <span class="entity-chip">{{ t }}</span>
                       {% endfor %}
                     </div>
-                    <button type="button"
-                            class="btn btn-sm btn-accent"
-                            onclick="useSuggestion(null, null, '{{ ai_tags_string|escapejs }}')">
-                      Use all
+                    <button type="button" class="btn use-btn" onclick="useSuggestion(null, null, '{{ ai_tags_string|escapejs }}')">
+                      <i class="bi bi-check-lg me-1"></i>Use All
                     </button>
                   </div>
                 </div>
                 {% endwith %}
               {% endif %}
-
-              {% if ai.hashtags %}
-                <div class="mb-2">
-                  <div class="text-secondary mb-1">AI Hashtags</div>
-                  <div class="d-flex flex-wrap gap-2">
-                    {% for h in ai.hashtags %}
-                      <span class="badge-soft">{{ h }}</span>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endif %}
             {% endwith %}
           {% else %}
-            <div class="mono small">{{ analysis.ai_metadata_raw }}</div>
+            <div class="ai-suggestion-text small">{{ analysis.ai_metadata_raw }}</div>
           {% endif %}
         {% endif %}
 
-        <!-- Save It! form (POST) -->
-        <hr>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
         <form method="post" action="{% url 'optimize' %}">
           {% csrf_token %}
-          <!-- Hidden fields to save what the user entered + analysis score/entities -->
           <input type="hidden" name="keyword" value="{{ keyword }}">
           <input type="hidden" name="title" value="{{ title }}">
           <input type="hidden" name="description" value="{{ description }}">
           <input type="hidden" name="tags" value="{{ tags }}">
-
           <input type="hidden" name="has_custom_thumbnail" value="{% if analysis.checks.custom_thumbnail %}on{% endif %}">
           <input type="hidden" name="in_playlists" value="{% if analysis.checks.in_playlists %}on{% endif %}">
-
           <input type="hidden" name="score" value="{{ analysis.score }}">
           <input type="hidden" name="entities" value="{{ analysis.entities|join:',' }}">
 
-          <button class="btn btn-accent">Save It!</button>
+          <button class="btn btn-accent">
+            <i class="bi bi-save-fill me-2"></i>Save to Library
+          </button>
         </form>
       </div>
     {% endif %}
   </div>
 
   <div class="col-lg-4">
-    <div class="panel">
-      <h6 class="mb-2">Tips</h6>
-      <ul class="mb-0 text-secondary">
-        <li>Keep titles ≤ 70 chars and include the main keyword.</li>
-        <li>Use the first lines of the description to promise value.</li>
-        <li>Add chapters (timestamps) for better retention.</li>
-        <li>Use 10–20 specific tags (no spam).</li>
-        <li>Custom thumbnail & playlists help CTR and session time.</li>
+    <div class="tips-panel">
+      <h6>
+        <i class="bi bi-trophy-fill"></i>
+        Optimization Tips
+      </h6>
+      <ul>
+        <li>Keep titles ≤ 70 characters and include your main keyword</li>
+        <li>Use the first 2-3 lines of description to hook viewers</li>
+        <li>Add timestamps (chapters) for better retention</li>
+        <li>Use 10–20 specific tags (avoid keyword stuffing)</li>
+        <li>Custom thumbnails can boost CTR by 2-10x</li>
+        <li>Playlists increase session time and recommendations</li>
+        <li>Front-load important keywords in titles</li>
       </ul>
     </div>
   </div>
 </div>
 
 <script>
+function updateCounter(fieldName, maxLength) {
+  const field = document.querySelector(`[name="${fieldName}"]`);
+  const counter = document.getElementById(fieldName + 'Counter');
+  if (field && counter) {
+    const length = field.value.length;
+    counter.textContent = `${length}/${maxLength}`;
+    if (length > maxLength * 0.9) {
+      counter.style.color = '#ef4444';
+    } else {
+      counter.style.color = 'var(--sub)';
+    }
+  }
+}
+
 function useSuggestion(title, description, tags) {
-  var form = document.getElementById('optimizeForm');
+  const form = document.getElementById('optimizeForm');
   if (!form) return;
 
   if (title !== null && title !== undefined) {
     form.elements['title'].value = title;
+    updateCounter('title', 100);
   }
   if (description !== null && description !== undefined) {
     form.elements['description'].value = description;
+    updateCounter('description', 5000);
   }
   if (tags !== null && tags !== undefined) {
     form.elements['tags'].value = tags;
+    updateCounter('tags', 500);
   }
 
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  
+  // Visual feedback
+  const usedFields = [];
+  if (title) usedFields.push(form.elements['title']);
+  if (description) usedFields.push(form.elements['description']);
+  if (tags) usedFields.push(form.elements['tags']);
+  
+  usedFields.forEach(field => {
+    field.style.borderColor = 'var(--accent)';
+    field.style.boxShadow = '0 0 0 3px rgba(255,122,0,0.2)';
+    setTimeout(() => {
+      field.style.borderColor = '';
+      field.style.boxShadow = '';
+    }, 1500);
+  });
 }
+
+// Initialize counters on page load
+document.addEventListener('DOMContentLoaded', function() {
+  updateCounter('title', 100);
+  updateCounter('description', 5000);
+  updateCounter('tags', 500);
+});
 </script>
 
 {% endblock %}

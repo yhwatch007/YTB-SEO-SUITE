@@ -7,211 +7,374 @@
   .hero {
     position: relative;
     background: linear-gradient(135deg, rgba(39,43,51,1) 0%, rgba(10,14,25,1) 40%, rgba(39,43,51,1) 100%);
-    border-radius: 18px;
-    padding: 24px 20px;
+    border-radius: 20px;
+    padding: 32px 24px;
     overflow: hidden;
+    margin-bottom: 24px;
   }
   body.theme-light .hero {
     background: linear-gradient(135deg, #e0e7ff 0%, #f9fafb 40%, #e0f2fe 100%);
   }
+  
   .hero-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
   }
+  
   .hero-sub {
     color: var(--sub);
-    max-width: 520px;
+    max-width: 600px;
+    font-size: 1rem;
+    line-height: 1.6;
   }
+  
   .chip {
     background: var(--muted);
     border-radius: 999px;
-    padding: 6px 10px;
-    font-size: 0.8rem;
+    padding: 8px 14px;
+    font-size: 0.85rem;
     color: var(--sub);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
   }
+  
+  .chip:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+  }
+  
   .tool-card {
     background: var(--panel);
-    border-radius: 16px;
-    padding: 16px 14px;
+    border-radius: 18px;
+    padding: 20px;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
   }
+  
+  .tool-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    border-color: rgba(255, 122, 0, 0.3);
+  }
+  
+  body.theme-light .tool-card:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+  
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #38bdf8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .tool-card:hover::before {
+    opacity: 1;
+  }
+  
+  .tool-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--muted);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+  
+  .tool-card:hover .tool-icon {
+    transform: rotate(10deg) scale(1.1);
+  }
+  
   .tool-title {
     font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .tool-desc {
-    font-size: 0.85rem;
-    color: var(--sub);
+    font-size: 1.1rem;
     margin-bottom: 8px;
+    color: var(--text);
   }
+  
+  .tool-desc {
+    font-size: 0.9rem;
+    color: var(--sub);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    flex-grow: 1;
+  }
+  
   .btn-soft {
     background: var(--muted);
     border: none;
-    color: var(--sub);
+    color: var(--text);
     font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
   }
-  .btn-soft:hover{
-    filter: brightness(1.05);
+  
+  .btn-soft:hover {
+    background: var(--accent);
+    color: #111;
+    transform: translateX(4px);
   }
 
-  /* floating light blobs in hero */
+  /* Animated orbs */
   .hero-orb {
     position: absolute;
-    width: 180px;
-    height: 180px;
     border-radius: 999px;
-    background: radial-gradient(circle at 30% 30%, rgba(255,122,0,0.9), transparent 60%);
-    opacity: 0.35;
-    filter: blur(4px);
-    animation: float 16s ease-in-out infinite alternate;
+    background: radial-gradient(circle at 30% 30%, rgba(255,122,0,0.8), transparent 70%);
+    opacity: 0.3;
+    filter: blur(40px);
+    animation: float 20s ease-in-out infinite alternate;
     pointer-events: none;
   }
-  .hero-orb.orb-2 {
-    width: 260px;
-    height: 260px;
-    right: -80px;
-    top: -40px;
-    background: radial-gradient(circle at 20% 30%, rgba(56,189,248,0.9), transparent 60%);
-    animation-duration: 22s;
+  
+  .hero-orb.orb-1 {
+    width: 300px;
+    height: 300px;
+    top: -100px;
+    left: -50px;
   }
+  
+  .hero-orb.orb-2 {
+    width: 400px;
+    height: 400px;
+    right: -120px;
+    top: -80px;
+    background: radial-gradient(circle at 20% 30%, rgba(56,189,248,0.8), transparent 70%);
+    animation-duration: 25s;
+    animation-delay: -5s;
+  }
+  
   .hero-orb.orb-3 {
-    width: 220px;
-    height: 220px;
-    left: -60px;
-    bottom: -40px;
-    background: radial-gradient(circle at 40% 40%, rgba(126,34,206,0.9), transparent 60%);
-    animation-duration: 18s;
+    width: 350px;
+    height: 350px;
+    left: -80px;
+    bottom: -100px;
+    background: radial-gradient(circle at 40% 40%, rgba(168,85,247,0.8), transparent 70%);
+    animation-duration: 22s;
+    animation-delay: -10s;
   }
 
   @keyframes float {
-    0%   { transform: translate3d(0,0,0) scale(1); }
-    50%  { transform: translate3d(20px,-10px,0) scale(1.05); }
-    100% { transform: translate3d(-10px,15px,0) scale(1.02); }
+    0%, 100% { 
+      transform: translate3d(0, 0, 0) scale(1); 
+    }
+    33% { 
+      transform: translate3d(30px, -20px, 0) scale(1.05); 
+    }
+    66% { 
+      transform: translate3d(-20px, 20px, 0) scale(0.95); 
+    }
+  }
+
+  /* Staggered entrance animation */
+  .tool-card {
+    animation: fadeInUp 0.6s ease-out backwards;
+  }
+  
+  .tool-card:nth-child(1) { animation-delay: 0.1s; }
+  .tool-card:nth-child(2) { animation-delay: 0.2s; }
+  .tool-card:nth-child(3) { animation-delay: 0.3s; }
+  .tool-card:nth-child(4) { animation-delay: 0.4s; }
+  .tool-card:nth-child(5) { animation-delay: 0.5s; }
+  .tool-card:nth-child(6) { animation-delay: 0.6s; }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 1.5rem;
+    }
+    
+    .hero {
+      padding: 24px 20px;
+    }
+    
+    .tool-card:hover {
+      transform: translateY(-4px);
+    }
   }
 </style>
 
-<div class="hero mb-4">
-  <!-- animated blobs -->
-  <div class="hero-orb"></div>
+<div class="hero">
+  <div class="hero-orb orb-1"></div>
   <div class="hero-orb orb-2"></div>
   <div class="hero-orb orb-3"></div>
 
   <div class="position-relative">
     <div class="d-flex justify-content-between flex-wrap gap-3 align-items-start">
       <div>
-        <div class="chip mb-2 d-inline-flex align-items-center gap-2">
+        <div class="chip mb-3">
           <i class="bi bi-lightning-charge-fill" style="color:var(--accent);"></i>
           YouTube SEO Suite
         </div>
-        <div class="hero-title mb-2">
-          Plan, analyze &amp; generate your YouTube strategy with AI.
+        <div class="hero-title">
+          Plan, analyze &amp; generate your YouTube strategy with AI
         </div>
         <p class="hero-sub mb-0">
-          Use <b>Discover</b> to find opportunities, <b>Optimize</b> to score and improve videos,
+          Use <b>Discover</b> to find ranking opportunities, <b>Optimize</b> to score and improve videos,
           and the <b>AI tools</b> to generate metadata, tags &amp; hashtags in seconds.
         </p>
       </div>
       <div class="d-flex flex-column gap-2 align-items-end">
         <span class="chip"><i class="bi bi-gear-fill"></i> Django + YouTube API</span>
         <span class="chip"><i class="bi bi-robot"></i> Powered by Gemini AI</span>
-        <span class="chip"><i class="bi bi-rocket-takeoff-fill"></i> Focused on rankable topics</span>
+        <span class="chip"><i class="bi bi-rocket-takeoff-fill"></i> Rankable topics</span>
       </div>
     </div>
   </div>
 </div>
 
 <div class="row g-3">
-  <div class="col-md-4">
+  <div class="col-md-6 col-lg-4">
     <div class="tool-card">
       <div>
-        <div class="tool-title"><i class="bi bi-graph-up-arrow me-1"></i> Discover</div>
+        <div class="tool-icon">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div class="tool-title">Discover</div>
         <div class="tool-desc">
           Analyze YouTube search results, see views/engagement and get AI insight on how competitive a keyword is.
         </div>
       </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <span class="chip">Keyword research</span>
-        <a href="{% url 'discover' %}" class="btn btn-soft btn-sm">Open →</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="chip" style="font-size: 0.75rem;">Keyword research</span>
+        <a href="{% url 'discover' %}" class="btn btn-soft">
+          Open <i class="bi bi-arrow-right"></i>
+        </a>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-6 col-lg-4">
     <div class="tool-card">
       <div>
-        <div class="tool-title"><i class="bi bi-magic me-1"></i> Optimize</div>
+        <div class="tool-icon">
+          <i class="bi bi-magic"></i>
+        </div>
+        <div class="tool-title">Optimize</div>
         <div class="tool-desc">
-          Score your video’s title, description &amp; tags, see missing entities and combine rule-based + AI suggestions.
+          Score your video's title, description &amp; tags, see missing entities and combine rule-based + AI suggestions.
         </div>
       </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <span class="chip">SEO + AI rewrite</span>
-        <a href="{% url 'optimize' %}" class="btn btn-soft btn-sm">Open →</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="chip" style="font-size: 0.75rem;">SEO + AI rewrite</span>
+        <a href="{% url 'optimize' %}" class="btn btn-soft">
+          Open <i class="bi bi-arrow-right"></i>
+        </a>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-6 col-lg-4">
     <div class="tool-card">
       <div>
-        <div class="tool-title"><i class="bi bi-robot me-1"></i> AI Generator</div>
+        <div class="tool-icon">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="tool-title">AI Generator</div>
         <div class="tool-desc">
           From a simple topic, generate ready-to-use titles, descriptions, tags &amp; hashtags with Gemini.
         </div>
       </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <span class="chip">Full metadata pack</span>
-        <a href="{% url 'ai_generator' %}" class="btn btn-soft btn-sm">Open →</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="chip" style="font-size: 0.75rem;">Full metadata pack</span>
+        <a href="{% url 'ai_generator' %}" class="btn btn-soft">
+          Open <i class="bi bi-arrow-right"></i>
+        </a>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-6 col-lg-4">
     <div class="tool-card">
       <div>
-        <div class="tool-title"><i class="bi bi-tags me-1"></i> Tag Finder</div>
+        <div class="tool-icon">
+          <i class="bi bi-tags"></i>
+        </div>
+        <div class="tool-title">Tag Finder</div>
         <div class="tool-desc">
           Give a topic and let the AI brainstorm 20–25 specific, SEO-friendly tags for your video.
         </div>
       </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <span class="chip">Long-tail discovery</span>
-        <a href="{% url 'tag_finder' %}" class="btn btn-soft btn-sm">Open →</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="chip" style="font-size: 0.75rem;">Long-tail discovery</span>
+        <a href="{% url 'tag_finder' %}" class="btn btn-soft">
+          Open <i class="bi bi-arrow-right"></i>
+        </a>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-6 col-lg-4">
     <div class="tool-card">
       <div>
-        <div class="tool-title"><i class="bi bi-hash me-1"></i> Hashtag Finder</div>
+        <div class="tool-icon">
+          <i class="bi bi-hash"></i>
+        </div>
+        <div class="tool-title">Hashtag Finder</div>
         <div class="tool-desc">
           Quickly generate a clean set of short, brand-safe hashtags to boost discoverability.
         </div>
       </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <span class="chip">Description helper</span>
-        <a href="{% url 'hashtag_finder' %}" class="btn btn-soft btn-sm">Open →</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="chip" style="font-size: 0.75rem;">Description helper</span>
+        <a href="{% url 'hashtag_finder' %}" class="btn btn-soft">
+          Open <i class="bi bi-arrow-right"></i>
+        </a>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-6 col-lg-4">
     <div class="tool-card">
       <div>
-        <div class="tool-title"><i class="bi bi-collection-play me-1"></i> Library</div>
+        <div class="tool-icon">
+          <i class="bi bi-collection-play"></i>
+        </div>
+        <div class="tool-title">Library</div>
         <div class="tool-desc">
           View and reuse saved optimizations for future uploads or split-tests.
         </div>
       </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <span class="chip">Your saved work</span>
-        <a href="{% url 'library' %}" class="btn btn-soft btn-sm">Open →</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="chip" style="font-size: 0.75rem;">Your saved work</span>
+        <a href="{% url 'library' %}" class="btn btn-soft">
+          Open <i class="bi bi-arrow-right"></i>
+        </a>
       </div>
     </div>
   </div>
