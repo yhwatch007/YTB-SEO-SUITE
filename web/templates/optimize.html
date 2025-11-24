@@ -15,10 +15,11 @@
     border-color: rgba(0,0,0,0.08);
   }
   
-  .form-control, .form-select {
+  .form-control,
+  .form-select {
     background: var(--muted);
     border: 1px solid rgba(255,255,255,0.05);
-    color: var(--text) !important; /* FIXED: Force text color */
+    color: var(--text);
     padding: 12px 16px;
     border-radius: 10px;
     transition: all 0.2s ease;
@@ -28,20 +29,21 @@
   body.theme-light .form-control,
   body.theme-light .form-select {
     border-color: rgba(0,0,0,0.08);
-    color: var(--text) !important;
+    color: var(--text);
   }
   
-  /* FIXED: Ensure placeholder is visible */
   .form-control::placeholder {
     color: var(--sub);
     opacity: 0.6;
   }
   
-  .form-control:focus, .form-select:focus {
-    box-shadow: 0 0 0 3px rgba(255,122,0,.15);
+  .form-control:focus,
+  .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(255,122,0,0.15);
     border-color: var(--accent);
     background: var(--muted);
-    color: var(--text) !important;
+    color: var(--text);
+    outline: none;
   }
   
   .form-label {
@@ -66,6 +68,7 @@
     padding: 12px 28px;
     border-radius: 10px;
     transition: all 0.2s ease;
+    cursor: pointer;
   }
   
   .btn-accent:hover {
@@ -112,7 +115,6 @@
     font-size: 0.9rem;
   }
 
-  /* FIXED: Better checkbox styling */
   .checkbox-wrapper {
     display: flex;
     align-items: center;
@@ -149,7 +151,6 @@
     font-weight: 500;
   }
 
-  /* Pillar bars */
   .pillar-row {
     margin-bottom: 16px;
   }
@@ -244,7 +245,6 @@
     transform: translateX(4px);
   }
   
-  /* FIXED: AI suggestions clean display */
   .ai-suggestion-text {
     color: var(--text);
     line-height: 1.6;
@@ -262,6 +262,7 @@
     font-size: 0.85rem;
     transition: all 0.2s ease;
     white-space: nowrap;
+    cursor: pointer;
   }
   
   .use-btn:hover {
@@ -283,7 +284,6 @@
     color: var(--accent);
   }
   
-  /* FIXED: Clean entity display - no URLs */
   .entity-chip {
     background: var(--muted);
     color: var(--text);
@@ -294,7 +294,6 @@
     display: inline-block;
   }
   
-  /* Tips sidebar */
   .tips-panel {
     background: linear-gradient(135deg, rgba(255,122,0,0.1), rgba(249,115,22,0.05));
     border-radius: 18px;
@@ -335,7 +334,6 @@
     font-weight: bold;
   }
   
-  /* Animations */
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -351,7 +349,6 @@
     animation: fadeInUp 0.5s ease-out;
   }
   
-  /* Custom scrollbar */
   textarea::-webkit-scrollbar {
     width: 8px;
   }
@@ -378,7 +375,7 @@
       <form id="optimizeForm" method="get" action="{% url 'optimize' %}">
         <div class="mb-3">
           <label class="form-label">Main Keyword <span style="color:var(--accent)">*</span></label>
-          <input name="keyword" class="form-control" placeholder="e.g. python tutorial for beginners" value="{{ keyword|default:'' }}" required>
+          <input type="text" name="keyword" class="form-control" placeholder="e.g. python tutorial for beginners" value="{{ keyword|default:'' }}" required>
         </div>
 
         <div class="mb-3">
@@ -386,7 +383,7 @@
             <span>Title</span>
             <span class="char-counter" id="titleCounter">0/100</span>
           </label>
-          <input name="title" maxlength="100" class="form-control" placeholder="Your video title..." value="{{ title|default:'' }}" oninput="updateCounter('title', 100)">
+          <input type="text" name="title" maxlength="100" class="form-control" placeholder="Your video title..." value="{{ title|default:'' }}" data-counter="title" data-max="100">
         </div>
 
         <div class="mb-3">
@@ -394,7 +391,7 @@
             <span>Description</span>
             <span class="char-counter" id="descCounter">0/5000</span>
           </label>
-          <textarea name="description" maxlength="5000" rows="6" class="form-control" placeholder="Your video description with timestamps, links, and key information..." oninput="updateCounter('description', 5000)">{{ description|default:'' }}</textarea>
+          <textarea name="description" maxlength="5000" rows="6" class="form-control" placeholder="Your video description with timestamps, links, and key information..." data-counter="description" data-max="5000">{{ description|default:'' }}</textarea>
         </div>
 
         <div class="mb-3">
@@ -402,10 +399,9 @@
             <span>Tags (comma separated)</span>
             <span class="char-counter" id="tagsCounter">0/500</span>
           </label>
-          <input name="tags" maxlength="500" class="form-control" placeholder="python, tutorial, coding, programming..." value="{{ tags|default:'' }}" oninput="updateCounter('tags', 500)">
+          <input type="text" name="tags" maxlength="500" class="form-control" placeholder="python, tutorial, coding, programming..." value="{{ tags|default:'' }}" data-counter="tags" data-max="500">
         </div>
 
-        <!-- FIXED: Better checkbox layout -->
         <div class="checkbox-wrapper">
           <div class="custom-checkbox">
             <input class="form-check-input" type="checkbox" id="thumbnail" name="has_custom_thumbnail" {% if has_custom_thumbnail %}checked{% endif %}>
@@ -418,7 +414,7 @@
         </div>
 
         <div class="d-flex gap-2">
-          <button class="btn btn-accent" name="action" value="analyze">
+          <button type="submit" class="btn btn-accent" name="action" value="analyze">
             <i class="bi bi-cpu-fill me-2"></i>Analyze It!
           </button>
         </div>
@@ -480,7 +476,6 @@
 
         <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
 
-        <!-- FIXED: Clean entity display -->
         <div class="section-title">
           <i class="bi bi-diagram-3-fill"></i>
           Key Topics to Cover
@@ -504,7 +499,7 @@
             Metadata Details
           </div>
           <div class="row g-2">
-            {% for k,v in analysis.meta_breakdown.items %}
+            {% for k, v in analysis.meta_breakdown.items %}
               <div class="col-md-6">
                 <div class="badge-soft w-100 text-start">
                   {{ k }}: <strong>{{ v }}</strong>
@@ -566,7 +561,7 @@
               {% for t in analysis.suggested_titles %}
                 <div class="suggestion-item d-flex justify-content-between align-items-center gap-3">
                   <span class="ai-suggestion-text flex-grow-1">{{ t }}</span>
-                  <button type="button" class="btn use-btn" onclick="useSuggestion('{{ t|escapejs }}', null, null)">
+                  <button type="button" class="btn use-btn" data-type="title" data-value="{{ t|escapejs }}">
                     <i class="bi bi-check-lg me-1"></i>Use
                   </button>
                 </div>
@@ -579,7 +574,7 @@
               <div class="text-secondary mb-2 small fw-bold">SUGGESTED DESCRIPTION</div>
               <div class="suggestion-item d-flex justify-content-between align-items-start gap-3">
                 <span class="ai-suggestion-text flex-grow-1">{{ analysis.suggested_description }}</span>
-                <button type="button" class="btn use-btn" onclick="useSuggestion(null, '{{ analysis.suggested_description|escapejs }}', null)">
+                <button type="button" class="btn use-btn" data-type="description" data-value="{{ analysis.suggested_description|escapejs }}">
                   <i class="bi bi-check-lg me-1"></i>Use
                 </button>
               </div>
@@ -587,7 +582,6 @@
           {% endif %}
 
           {% if analysis.suggested_tags %}
-            {% with analysis.suggested_tags|join:", " as sug_tags_string %}
             <div class="mb-3">
               <div class="text-secondary mb-2 small fw-bold">SUGGESTED TAGS</div>
               <div class="suggestion-item d-flex flex-wrap align-items-center gap-2">
@@ -596,16 +590,14 @@
                     <span class="entity-chip">{{ t }}</span>
                   {% endfor %}
                 </div>
-                <button type="button" class="btn use-btn" onclick="useSuggestion(null, null, '{{ sug_tags_string|escapejs }}')">
+                <button type="button" class="btn use-btn" data-type="tags" data-value="{{ analysis.suggested_tags|join:', '|escapejs }}">
                   <i class="bi bi-check-lg me-1"></i>Use All
                 </button>
               </div>
             </div>
-            {% endwith %}
           {% endif %}
         {% endif %}
 
-        <!-- FIXED: Clean AI suggestions display -->
         {% if analysis.ai_metadata or analysis.ai_metadata_raw %}
           <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -627,7 +619,7 @@
                   {% for t in ai.titles %}
                     <div class="suggestion-item d-flex justify-content-between align-items-center gap-3">
                       <span class="ai-suggestion-text flex-grow-1">{{ t }}</span>
-                      <button type="button" class="btn use-btn" onclick="useSuggestion('{{ t|escapejs }}', null, null)">
+                      <button type="button" class="btn use-btn" data-type="title" data-value="{{ t|escapejs }}">
                         <i class="bi bi-check-lg me-1"></i>Use
                       </button>
                     </div>
@@ -640,7 +632,7 @@
                   <div class="text-secondary mb-2 small fw-bold">AI DESCRIPTION</div>
                   <div class="suggestion-item d-flex justify-content-between align-items-start gap-3">
                     <span class="ai-suggestion-text flex-grow-1">{{ ai.description }}</span>
-                    <button type="button" class="btn use-btn" onclick="useSuggestion(null, '{{ ai.description|escapejs }}', null)">
+                    <button type="button" class="btn use-btn" data-type="description" data-value="{{ ai.description|escapejs }}">
                       <i class="bi bi-check-lg me-1"></i>Use
                     </button>
                   </div>
@@ -648,7 +640,6 @@
               {% endif %}
 
               {% if ai.tags %}
-                {% with ai.tags|join:", " as ai_tags_string %}
                 <div class="mb-3">
                   <div class="text-secondary mb-2 small fw-bold">AI TAGS</div>
                   <div class="suggestion-item d-flex flex-wrap align-items-center gap-2">
@@ -657,12 +648,11 @@
                         <span class="entity-chip">{{ t }}</span>
                       {% endfor %}
                     </div>
-                    <button type="button" class="btn use-btn" onclick="useSuggestion(null, null, '{{ ai_tags_string|escapejs }}')">
+                    <button type="button" class="btn use-btn" data-type="tags" data-value="{{ ai.tags|join:', '|escapejs }}">
                       <i class="bi bi-check-lg me-1"></i>Use All
                     </button>
                   </div>
                 </div>
-                {% endwith %}
               {% endif %}
             {% endwith %}
           {% else %}
@@ -682,7 +672,7 @@
           <input type="hidden" name="score" value="{{ analysis.score }}">
           <input type="hidden" name="entities" value="{{ analysis.entities|join:',' }}">
 
-          <button class="btn btn-accent">
+          <button type="submit" class="btn btn-accent">
             <i class="bi bi-save-fill me-2"></i>Save to Library
           </button>
         </form>
@@ -710,61 +700,80 @@
 </div>
 
 <script>
-function updateCounter(fieldName, maxLength) {
-  const field = document.querySelector(`[name="${fieldName}"]`);
-  const counter = document.getElementById(fieldName + 'Counter');
-  if (field && counter) {
-    const length = field.value.length;
-    counter.textContent = `${length}/${maxLength}`;
+(function() {
+  'use strict';
+  
+  // Character counter function
+  function updateCounter(input) {
+    const counterName = input.getAttribute('data-counter');
+    const maxLength = parseInt(input.getAttribute('data-max'), 10);
+    const counter = document.getElementById(counterName + 'Counter');
+    
+    if (!counter) return;
+    
+    const length = input.value.length;
+    counter.textContent = length + '/' + maxLength;
+    
     if (length > maxLength * 0.9) {
       counter.style.color = '#ef4444';
     } else {
       counter.style.color = 'var(--sub)';
     }
   }
-}
-
-function useSuggestion(title, description, tags) {
-  const form = document.getElementById('optimizeForm');
-  if (!form) return;
-
-  if (title !== null && title !== undefined) {
-    form.elements['title'].value = title;
-    updateCounter('title', 100);
-  }
-  if (description !== null && description !== undefined) {
-    form.elements['description'].value = description;
-    updateCounter('description', 5000);
-  }
-  if (tags !== null && tags !== undefined) {
-    form.elements['tags'].value = tags;
-    updateCounter('tags', 500);
-  }
-
-  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   
-  // Visual feedback
-  const usedFields = [];
-  if (title) usedFields.push(form.elements['title']);
-  if (description) usedFields.push(form.elements['description']);
-  if (tags) usedFields.push(form.elements['tags']);
-  
-  usedFields.forEach(field => {
+  // Use suggestion function
+  function useSuggestion(button) {
+    const form = document.getElementById('optimizeForm');
+    if (!form) return;
+    
+    const type = button.getAttribute('data-type');
+    const value = button.getAttribute('data-value');
+    
+    const fieldMap = {
+      'title': form.elements['title'],
+      'description': form.elements['description'],
+      'tags': form.elements['tags']
+    };
+    
+    const field = fieldMap[type];
+    if (!field) return;
+    
+    field.value = value;
+    updateCounter(field);
+    
+    // Scroll to form
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Visual feedback
     field.style.borderColor = 'var(--accent)';
     field.style.boxShadow = '0 0 0 3px rgba(255,122,0,0.2)';
-    setTimeout(() => {
+    
+    setTimeout(function() {
       field.style.borderColor = '';
       field.style.boxShadow = '';
     }, 1500);
+  }
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize counters
+    const inputs = document.querySelectorAll('[data-counter]');
+    inputs.forEach(function(input) {
+      updateCounter(input);
+      input.addEventListener('input', function() {
+        updateCounter(this);
+      });
+    });
+    
+    // Add click handlers to use buttons
+    const useButtons = document.querySelectorAll('.use-btn');
+    useButtons.forEach(function(button) {
+      button.addEventListener('click', function() {
+        useSuggestion(this);
+      });
+    });
   });
-}
-
-// Initialize counters on page load
-document.addEventListener('DOMContentLoaded', function() {
-  updateCounter('title', 100);
-  updateCounter('description', 5000);
-  updateCounter('tags', 500);
-});
+})();
 </script>
 
 {% endblock %}
