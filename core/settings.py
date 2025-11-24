@@ -40,6 +40,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "iot.yahyz.news",
     "www.iot.yahyz.news",
+    "https://web-production-4a5f.up.railway.app/",
       
 ]
 
@@ -49,6 +50,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "https://iot.yahyz.news",
     "https://www.iot.yahyz.news",
+    "https://web-production-4a5f.up.railway.app/",
 ]
 
 # Behind Railway's proxy, tell Django to trust X-Forwarded headers
